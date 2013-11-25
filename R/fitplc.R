@@ -50,7 +50,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
       message("Fitting to bootstrap replicates ...", appendLF=FALSE)
       p <- predict_nls(nlsfit, interval="confidence")
       message("done.")
-    } else p <- NA
+    } else {
+      p <- predict_nls(nlsfit, interval="none")
+    }
     
     # ci on pars.
     cipars <- suppressMessages(confint(nlsfit))
@@ -69,20 +71,28 @@ return(l)
 plot.plcfit <- function(x, ...){
   
     with(x, {
-    plot(X, relK, ylim=c(0,1), pch=19,
+    plot(data$X, data$relK, ylim=c(0,1), pch=19,
          xlab=expression(Water~potential~~(-MPa)),
          ylab="Relative conductivity (0 - 1)")
-    with(p,{
-         lines(x, lwr, type='l', lty=5)
-         lines(x, upr, type='l', lty=5)
-         lines(x, pred, type='l', lty=1)
-         })
     })
+    if("lwr" %in% names(x$p)){
+      with(x$p,{
+        lines(x, lwr, type='l', lty=5)
+        lines(x, upr, type='l', lty=5)
+        lines(x, pred, type='l', lty=1)
+      })
+    } else {
+      with(x$p,{
+        lines(x, pred, type='l', lty=1)
+      })
+      
+      
+    }
     p50 <- coef(x$fit)["P50"]
     abline(v=p50, col="red")
     
     # method 1 : bootstrap
-    p50_ci <- quantile(x$p$boot[,2], c(0.025, 0.975))
+    #p50_ci <- quantile(x$p$boot[,2], c(0.025, 0.975))
     # method 2: confint (parametric)
     p50_ci <- x$ci[2,]
     
