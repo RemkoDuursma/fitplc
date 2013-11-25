@@ -1,23 +1,26 @@
-library(plantecophys)
-
-
-
+#' Fit PLC curves
+#' @description Description goes here.
+#' @param dfr A dataframe that contains water potential and plc data.
+#' @param varnames A vector specifying the names of the PLC and water potential data (WP) in the dataframe.
+#' @export
 #' @examples
+#' \dontrun{
 #' dfr <- read.csv("test/stemvul-ros.csv")
 #' dfr <- subset(dfr, Species =="EuTe")
-
+#' 
 #' pfit <- fitplc(dfr)
 #' pfit
 #' plot(pfit)
-
-
-
-fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull"){
+#' }
+fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", bootci=FALSE){
 
                    
     # Get variables out of dataframe
     Y <- dfr[[varnames["PLC"]]]
     X <- dfr[[varnames["WP"]]]
+    
+    # check for NA
+    if(any(is.na(c(Y,X))))stop("Remove missing values first.")
     
     # Need absolute values of water potential
     if(mean(X) < 0)X <- -X
@@ -43,9 +46,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull"){
     message("done.")
     
     # bootstrap
-    message("Fitting to bootstrap replicates ...", appendLF=FALSE)
-    p <- predict_nls(nlsfit, interval="confidence")
-    message("done.")
+    if(bootci){
+      message("Fitting to bootstrap replicates ...", appendLF=FALSE)
+      p <- predict_nls(nlsfit, interval="confidence")
+      message("done.")
+    } else p <- NA
     
     # ci on pars.
     cipars <- suppressMessages(confint(nlsfit))
