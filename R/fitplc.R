@@ -45,10 +45,10 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
     # bootstrap
     if(bootci){
       message("Fitting to bootstrap replicates ...", appendLF=FALSE)
-      p <- predict_nls(nlsfit, interval="confidence")
+      p <- predict_nls(nlsfit, interval="confidence", data=Data)
       message("done.")
     } else {
-      p <- predict_nls(nlsfit, interval="none")
+      p <- predict_nls(nlsfit, interval="none", data=Data)
     }
     
     # ci on pars.

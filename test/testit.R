@@ -46,13 +46,18 @@ plot(pfits[[3]], plotdata=F, plotP50=F, add=T, linecol="forestgreen")
 
 
 pfits2 <- lapply(dfrs, function(x)fitplc(x, bootci=TRUE))
+
+
 plot(pfits2[[1]], plotdata=F, plotP50=F, linecol="blue")
 plot(pfits2[[2]], plotdata=F, plotP50=F, add=T, linecol="red")
 plot(pfits2[[3]], plotdata=F, plotP50=F, add=T, linecol="forestgreen")
 
 
-# something wrong!!!
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
 for(i in 1:3)plot(pfits2[[i]], xlim=c(0,7), main=names(pfits2)[i])
+
+
+
+
 
