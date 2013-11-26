@@ -106,7 +106,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       p50_ci <- x$ci[2,]
       
       abline(v=p50_ci, col="red", lty=5)
-      mtext(side=3, at=p50, text=expression(P[50]), line=1, col="red")
+      mtext(side=3, at=p50, text=expression(P[50]), line=0, col="red", cex=0.7)
     }
     
 }
@@ -130,6 +130,39 @@ coef.plcfit <- function(object,...){
   
 return(Table)
 }
+
+#' @export
+fitplcs <- function(dfr, group, ...){
+  
+  if(!group %in% names(dfr))
+    stop("You must provide a name in the dataframe to fit by.")
+  
+  dfrs <- split(dfr, dfr[,group])
+  
+  fits <- lapply(dfrs, function(x)fitplc(x, ...))
+  class(fits) <- "manyplcfit"
+
+return(fits)
+}
+
+#'@export
+print.manyplcfit <- function(x,...){
+  
+  
+  coefs <- lapply(x, coef)
+  
+  cat("Object of class 'manyplcfit'\n")
+  cat("------------------------------\n\n")
+  cat("Parameter estimates and 95% confidence intervals:\n\n")
+  
+  for(i in 1:length(x)){
+    cat("Group: ",names(x)[i],"\n")
+    print(coefs[[i]])
+    cat("\n")
+  }
+  
+}
+
 
 
 

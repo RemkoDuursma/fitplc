@@ -59,5 +59,29 @@ for(i in 1:3)plot(pfits2[[i]], xlim=c(0,7), main=names(pfits2)[i])
 
 
 
+# more data
+leafvul <- read.csv("test/leafvul-points.csv", sep=";")
+
+leafvuls <- split(leafvul, leafvul$Species)
+pfits3 <- lapply(leafvuls, function(x)fitplc(x, bootci=TRUE) )
+
+windows(10,8)
+par(mfrow=c(3,1), mar=c(4,4,2,2))
+for(i in 1:3)plot(pfits3[[i]], xlim=c(0,7), main=names(pfits3)[i])
+
+
+
+
+# even more data.
+stemvul <- read.csv("test/stemvul-points.csv", sep=";")
+
+
+f <- fitplcs(stemvul, "Species")
+
+f <- fitplcs(leafvul, "Species")
+
+
+
+
 
 

@@ -1,5 +1,7 @@
 export(coef.plcfit)
 export(fitplc)
+export(fitplcs)
 export(fweibull)
 export(plot.plcfit)
+export(print.manyplcfit)
 export(print.plcfit)
