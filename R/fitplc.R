@@ -22,6 +22,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
 
                    
     # Get variables out of dataframe
+    if(!varnames["PLC"] %in% names(dfr))
+      stop("Check variable name for PLC!")
+    if(!varnames["WP"] %in% names(dfr))
+      stop("Check variable name for water potential!")
+    
     Y <- dfr[[varnames["PLC"]]]
     X <- dfr[[varnames["WP"]]]
     
@@ -36,15 +41,15 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
     
     Data <- data.frame(X=X, relK=relK)
     
-    
-    # guess starting values
-    p50start <- (max(X) - min(X))/2
-    Sh <- 15
-    
+#     
+#     # guess starting values
+#     p50start <- (max(X) - min(X))/2
+#     Sh <- 15
+#     
     # fit
     message("Fitting nls ...", appendLF=FALSE)
     nlsfit <- nls(relK ~ fweibull(X, S, P50),
-                  data=Data,start=list(S=Sh, P50=p50start))
+                  data=Data,start=list(S=15, P50=2))
     message("done.")
     
     # bootstrap
