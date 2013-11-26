@@ -20,9 +20,10 @@
 dfr <- read.csv("test/stemvul-ros.csv")
 dfr <- subset(dfr, Species =="EuTe")
 
-pfit <- fitplc(dfr)
+pfit <- fitplc(dfr, bootci=TRUE)
 pfit
 plot(pfit)
+
 }
 }
 

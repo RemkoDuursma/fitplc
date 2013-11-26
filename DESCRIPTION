@@ -13,3 +13,5 @@ Depends:
 Collate:
     'fitplc.R'
     'predict_nls.R'
+    'fweibull.R'
+    'bootfit.R'

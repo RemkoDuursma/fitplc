@@ -1,3 +1,5 @@
+export(coef.plcfit)
 export(fitplc)
-export(plot.nls)
-export(predict_nls)
+export(fweibull)
+export(plot.plcfit)
+export(print.plcfit)
