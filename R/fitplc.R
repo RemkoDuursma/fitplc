@@ -36,10 +36,15 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
     
     Data <- data.frame(X=X, relK=relK)
     
+    
+    # guess starting values
+    p50start <- (max(X) - min(X))/2
+    Sh <- 15
+    
     # fit
     message("Fitting nls ...", appendLF=FALSE)
     nlsfit <- nls(relK ~ fweibull(X, S, P50),
-                  data=Data,start=list(S=5, P50=2.5))
+                  data=Data,start=list(S=Sh, P50=p50start))
     message("done.")
     
     # bootstrap
