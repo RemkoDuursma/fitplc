@@ -1,3 +1,4 @@
+export(coef.manyplcfit)
 export(coef.plcfit)
 export(fitplc)
 export(fitplcs)
