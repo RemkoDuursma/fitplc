@@ -24,7 +24,7 @@ Windows users must have Rtools installed for this to work (http://cran.r-project
 
 Example for a leaf vulnerability curve.
 
-![leafvulexample](plcfitexample.jpg)
+![leafvulexample](https://bitbucket.org/remkoduursma/fitplc/raw/master/test/plcfitexample.jpg)
 
 
 Below I have simply pasted the example from the help file `?fitplc`. Please read that help file for more instructions. 
