@@ -33,10 +33,10 @@ dev.copy2pdf(file="output/stemvulfits.pdf")
 
 # leafvul
 leafvul <- read.csv("test/leafvul-points.csv", sep=";")
-f <- fitplcs(leafvul, "Species", bootci=TRUE)
+leafvulfits <- fitplcs(leafvul, "Species", bootci=TRUE)
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
-for(i in 1:3)plot(f[[i]], xlim=c(0,7), main=names(f)[i])
+for(i in 1:3)plot(leafvulfits[[i]], xlim=c(0,7), main=names(f)[i])
 dev.copy2pdf(file="output/leafvulfits.pdf")
 
 # usleafvul
@@ -60,6 +60,12 @@ dev.copy2pdf(file="output/usstemvulfits.pdf")
 
 
 
+# make figure
+jpeg("test/plcfitexample.jpg", width=500, height=250, quality=100, pointsize=8)
+par(xaxs="i", yaxs="i", cex.lab=2, mar=c(6,6,2,1), cex.axis=1.6)
+plot(leafvulfits[[2]], xlim=c(1,7), ylim=c(0,1.1))
+dev.off()
+
 
 
 
@@ -76,8 +82,6 @@ dev.copy2pdf(file="output/usstemvulfits.pdf")
 # x <- c(1.5,3,4)
 # y <- c(1,2)
 # overlap(x,y)
-
-
 
 
 
