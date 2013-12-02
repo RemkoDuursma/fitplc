@@ -17,12 +17,12 @@
 #' dfr <- read.csv("test/stemvul-ros.csv")
 #' 
 #' # 1. Fit one species (or fit all, see next example)
-#' dfr <- subset(dfr, Species =="EuTe")
+#' dfr_eute <- subset(dfr, Species =="EuTe")
 #' 
 #' # Make fit. Store results in object 'pfit'
 #' # 'varnames' specifies the names of the 'PLC' variable in the dataframe,
 #' # and water potential (WP). 
-#' pfit <- fitplc(dfr, varnames=c(PLC="PLC", WP="MPa"))
+#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"))
 #' 
 #' # Look at fit
 #' pfit
@@ -40,7 +40,7 @@
 #' # Make three plots
 #' # windows(10,8) # optional : open up a window and split.
 #' # par(mfrow=c(3,1), mar=c(4,4,2,2))
-#' for(i in 1:3)plot(f[[i]], xlim=c(0,7), main=names(f)[i])
+#' for(i in 1:3)plot(allfit[[i]], xlim=c(0,7), main=names(allfit)[i])
 #' 
 #' # Coefficients show the estimates and 95% CI (given by 'lower' and 'upper')
 #' # Based on the CI's, species differences can be decided.
