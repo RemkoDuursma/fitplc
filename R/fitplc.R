@@ -7,6 +7,7 @@
 #' @param dfr A dataframe that contains water potential and plc data.
 #' @param varnames A vector specifying the names of the PLC and water potential data (WP) in the dataframe.
 #' @param model At the moment, only 'Weibull' is allowed.
+#' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
 #' @export
 #' @rdname fitplc
@@ -47,7 +48,9 @@
 #' coef(allfit)
 #' }
 #' 
-fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", bootci=TRUE){
+fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", 
+                   startvalues=list(P50=3, S=20),
+                   bootci=TRUE){
 
                    
     # Get variables out of dataframe
@@ -72,8 +75,13 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
     
     
     # guess starting values
-    p50start <- (max(X) - min(X))/2
-    Sh <- 15
+    if(is.null(startvalues)){
+      p50start <- (max(X) - min(X))/2
+      Sh <- 15
+    } else {
+      p50start <- startvalues$P50
+      Sh <- startvalues$S
+    }
     
     # fit
     message("Fitting nls ...", appendLF=FALSE)

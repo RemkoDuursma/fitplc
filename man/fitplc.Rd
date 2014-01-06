@@ -4,7 +4,7 @@
 \title{Fit PLC curves}
 \usage{
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), model = "Weibull",
-  bootci = TRUE)
+  startvalues = list(P50 = 3, S = 20), bootci = TRUE)
 
 fitplcs(dfr, group, ...)
 }
@@ -16,6 +16,10 @@ fitplcs(dfr, group, ...)
   and water potential data (WP) in the dataframe.}
 
   \item{model}{At the moment, only 'Weibull' is allowed.}
+
+  \item{startvalues}{A list of starting values. If set to
+  NULL, \code{fitplc} will attempt to guess starting
+  values.}
 
   \item{bootci}{If TRUE, also computes the bootstrap
   confidence interval.}
