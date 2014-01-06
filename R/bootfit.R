@@ -1,5 +1,5 @@
 # This works for this object only
-bootfit <- function(fit, n=999, maxnbad=50, Data){
+bootfit <- function(fit, n=999, maxnbad=50, Data, startList){
   
 
   
@@ -11,7 +11,7 @@ bootfit <- function(fit, n=999, maxnbad=50, Data){
   
   while(ndone < n && nbad < maxnbad){
     bootsample <- sample(nrow, replace=TRUE)
-    tryfit <- try(update(fit, subset=bootsample, data=Data), silent=TRUE)
+    tryfit <- try(update(fit, subset=bootsample, data=Data, start=startList), silent=TRUE)
     if(!inherits(tryfit, "try-error")){
       ndone <- ndone + 1
       nbad <- 0
@@ -20,7 +20,7 @@ bootfit <- function(fit, n=999, maxnbad=50, Data){
       nbad <- nbad + 1
     }
   
-  #if(nbad == maxnbad)stop("Too many consecutive fits have failed.")
+  if(nbad == maxnbad)warning("Too many consecutive fits have failed.")
   }
   
   

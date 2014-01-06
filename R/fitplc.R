@@ -70,24 +70,24 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", boot
     
     Data <- data.frame(X=X, relK=relK)
     
-#     
-#     # guess starting values
-#     p50start <- (max(X) - min(X))/2
-#     Sh <- 15
-#     
+    
+    # guess starting values
+    p50start <- (max(X) - min(X))/2
+    Sh <- 15
+    
     # fit
     message("Fitting nls ...", appendLF=FALSE)
     nlsfit <- nls(relK ~ fweibull(X, S, P50),
-                  data=Data,start=list(S=15, P50=2))
+                  data=Data,start=list(S=Sh, P50=p50start))
     message("done.")
     
     # bootstrap
     if(bootci){
       message("Fitting to bootstrap replicates ...", appendLF=FALSE)
-      p <- predict_nls(nlsfit, interval="confidence", data=Data)
+      p <- predict_nls(nlsfit, interval="confidence", data=Data, startList=list(S=Sh, P50=p50start))
       message("done.")
     } else {
-      p <- predict_nls(nlsfit, interval="none", data=Data)
+      p <- predict_nls(nlsfit, interval="none", data=Data, startList=list(S=Sh, P50=p50start))
     }
     
     # ci on pars.
@@ -154,7 +154,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 print.plcfit <- function(x,...){
   cat("Class of object 'plcfit' as returned by 'fitplc'.\n")
   cat("-------------------------------------------------\n\n")
-  cat("Parameters and 95% confidence interval:\n\n")
+  cat("Parameters, SE, and 95% confidence interval:\n\n")
   cat()
   
   print(coef(x))
@@ -164,7 +164,7 @@ print.plcfit <- function(x,...){
 #'@export
 coef.plcfit <- function(object,...){
   
-  Estimate <- coef(object$fit)
+  Estimate <- summary(object$fit)$coefficients[,1:2]
   Table <- cbind(Estimate, object$ci)
   
 return(Table)
