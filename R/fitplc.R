@@ -49,7 +49,7 @@
 #' }
 #' 
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", 
-                   startvalues=list(P50=3, S=20),
+                   startvalues=list(Px=3, S=20), x=50,
                    bootci=TRUE){
 
                    
@@ -60,42 +60,51 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull",
       stop("Check variable name for water potential!")
     
     Y <- dfr[[varnames["PLC"]]]
-    X <- dfr[[varnames["WP"]]]
+    P <- dfr[[varnames["WP"]]]
     
     # check for NA
-    if(any(is.na(c(Y,X))))stop("Remove missing values first.")
+    if(any(is.na(c(Y,P))))stop("Remove missing values first.")
     
     # Need absolute values of water potential
-    if(mean(X) < 0)X <- -X
+    if(mean(P) < 0)P <- -P
     
     # Calculate relative conductivity:
     relK <- (100 - Y)/100
     
-    Data <- data.frame(X=X, relK=relK)
-    
+    Data <- data.frame(P=P, relK=relK)
     
     # guess starting values
     if(is.null(startvalues)){
-      p50start <- (max(X) - min(X))/2
+      pxstart <- (1-x/100)*(max(P) - min(P))
       Sh <- 15
     } else {
-      p50start <- startvalues$P50
+      pxstart <- startvalues$Px
       Sh <- startvalues$S
     }
     
     # fit
+    Data$X <- x
     message("Fitting nls ...", appendLF=FALSE)
-    nlsfit <- nls(relK ~ fweibull(X, S, P50),
-                  data=Data,start=list(S=Sh, P50=p50start))
+#     nlsfit <- nls(relK ~ fweibull(X, S, Px),
+#                   data=Data,start=list(S=Sh, Px=pxstart))
+
+#     nlsfit <- nls(relK ~ (1 - X/100)^((P/PX)^((PX * SX)/
+#                          (X - 100) * log(1 - X/100))),
+#                   data=Data, start=list(SX=Sh, PX=pxstart))
+      nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
+                    data=Data, start=list(SX=Sh, PX=pxstart))
+
     message("done.")
     
     # bootstrap
     if(bootci){
       message("Fitting to bootstrap replicates ...", appendLF=FALSE)
-      p <- predict_nls(nlsfit, interval="confidence", data=Data, startList=list(S=Sh, P50=p50start))
+      p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
+                       startList=list(SX=Sh, PX=pxstart))
       message("done.")
     } else {
-      p <- predict_nls(nlsfit, interval="none", data=Data, startList=list(S=Sh, P50=p50start))
+      p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
+                       startList=list(SX=Sh, PX=pxstart))
     }
     
     # ci on pars.
@@ -105,7 +114,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull",
     l$fit <- nlsfit
     l$pred <- p
     l$ci <- cipars
-    l$data <- data.frame(X=X, Y=Y, relK=relK)
+    l$data <- data.frame(P=P, Y=Y, relK=relK)
+    l$x <- x
     class(l) <- "plcfit"
     
 return(l)
@@ -113,9 +123,8 @@ return(l)
     
 #'@export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
-                        plotP50=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
+                        plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         linecol="black", ...){
-  
     if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
     if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
     if(is.null(ylim))ylim <- c(0,1)
@@ -123,14 +132,14 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     
     if(!add){
       with(x, {
-      plot(data$X, data$relK, ylim=ylim, pch=pch,
+      plot(data$P, data$relK, ylim=ylim, pch=pch,
            xlab=xlab,
            type=type,
            ylab=ylab, ...)
       })
     } else {
       with(x, {
-        points(data$X, data$relK, pch=pch, type=type,...)
+        points(data$P, data$relK, pch=pch, type=type,...)
       })
     }
     if("lwr" %in% names(x$p) && plotci){
@@ -143,17 +152,17 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       lines(x, pred, type='l', lty=1, col=linecol)
     })
     
-    if(plotP50){
-      p50 <- coef(x$fit)["P50"]
-      abline(v=p50, col="red")
+    if(plotPx){
+      px <- coef(x$fit)["PX"]
+      abline(v=px, col="red")
       
       # method 1 : bootstrap
       #p50_ci <- quantile(x$p$boot[,2], c(0.025, 0.975))
       # method 2: confint (parametric)
-      p50_ci <- x$ci[2,]
+      px_ci <- x$ci[2,]
       
-      abline(v=p50_ci, col="red", lty=5)
-      mtext(side=3, at=p50, text=expression(P[50]), line=0, col="red", cex=0.7)
+      abline(v=px_ci, col="red", lty=5)
+      mtext(side=3, at=px, text=expression(Px), line=0, col="red", cex=0.7)
     }
     
 }
@@ -220,7 +229,8 @@ coef.manyplcfit <- function(object, ...){
   x <- lapply(object,coef)
   vf <- function(m)as.vector(t(m))
   dfr <-  as.data.frame(do.call(rbind,lapply(x,vf)))
-  names(dfr) <- c("S","S_lower","S_upper","P50","P50_lower","P50_upper")
+  names(dfr) <- c("S","S_SE","S_lower","S_upper",
+                  "Px","Px_SE","P50_lower","P50_upper")
   
   return(dfr)
 }

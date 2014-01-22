@@ -10,3 +10,8 @@ Description: Fits the weibull equation to plc curves, computes SE of parameter
 License: GPL
 Depends:
     car
+Collate:
+    'bootfit.R'
+    'fitplc.R'
+    'fweibull.R'
+    'predict_nls.R'
