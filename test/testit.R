@@ -2,6 +2,13 @@
 
 # Stem at ROS
 stemros <- read.csv("test/stemvul-ros.csv")
+
+# fit one.
+dfr <- subset(stemros, Species == "EuTe")
+eutefit <- fitplc(dfr, bootci=FALSE)
+
+
+# fit all
 stemrosfits <- fitplcs(stemros, "Species", bootci=TRUE)
 stemrosfits
 
