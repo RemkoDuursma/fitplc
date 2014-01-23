@@ -1,8 +1,8 @@
 Package: fitplc
 Type: Package
 Title: Fit vulnerability (percent loss conductivity) curves
-Version: 0.1
-Date: 2013-11-26
+Version: 0.1-2
+Date: 2014-1-23
 Author: Remko Duursma
 Maintainer: Remko Duursma <remkoduursma@gmail.com>
 Description: Fits the weibull equation to plc curves, computes SE of parameter
