@@ -3,11 +3,10 @@
 \alias{fitplcs}
 \title{Fit PLC curves}
 \usage{
-  fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"),
-    model = "Weibull", startvalues = list(Px = 3, S = 20),
-    x = 50, bootci = TRUE)
+fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), model = "Weibull",
+  startvalues = list(Px = 3, S = 20), x = 50, bootci = TRUE)
 
-  fitplcs(dfr, group, ...)
+fitplcs(dfr, group, ...)
 }
 \arguments{
   \item{dfr}{A dataframe that contains water potential and
@@ -32,13 +31,13 @@
   \item{\dots}{Further parameters passed to \code{fitplc}.}
 }
 \description{
-  This function fits 'percent loss conductivity' (PLC)
-  curves. At the moment, it only fits the Weibull curve, as
-  reparameterized by Ogle et al. (2009), and only returns
-  P50 (although soon it will return P88 or whatever
-  values). The function \code{fitplcs} can be used for
-  batch fitting. See examples below for usage of
-  \code{fitplc} or \code{fitplcs}.
+This function fits 'percent loss conductivity' (PLC)
+curves. At the moment, it only fits the Weibull curve, as
+reparameterized by Ogle et al. (2009), and only returns P50
+(although soon it will return P88 or whatever values). The
+function \code{fitplcs} can be used for batch fitting. See
+examples below for usage of \code{fitplc} or
+\code{fitplcs}.
 }
 \examples{
 \dontrun{
