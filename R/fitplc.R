@@ -124,22 +124,38 @@ return(l)
 #'@export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
-                        linecol="black", ...){
+                        linecol="black", what=c("relk","embol"), ...){
     if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
-    if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
-    if(is.null(ylim))ylim <- c(0,1)
+    
+    
     type <- ifelse(plotdata, 'p', 'n')
+    what <- match.arg(what)
+    
+    if(what == "relk"){
+      if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
+      x$data$Y <- x$data$relK
+      if(is.null(ylim))ylim <- c(0,1)
+    }
+    if(what == "embol"){
+      if(is.null(ylab))ylab <- "% Embolism"
+      
+      x$data$Y <- 100 - 100*x$data$relK
+      x$p$lwr <- 100 - 100*x$p$lwr
+      x$p$upr <- 100 - 100*x$p$upr
+      x$p$pred <- 100 - 100*x$p$pred
+      if(is.null(ylim))ylim <- c(0,100)
+    }
     
     if(!add){
       with(x, {
-      plot(data$P, data$relK, ylim=ylim, pch=pch,
+      plot(data$P, data$Y, ylim=ylim, pch=pch,
            xlab=xlab,
            type=type,
            ylab=ylab, ...)
       })
     } else {
       with(x, {
-        points(data$P, data$relK, pch=pch, type=type,...)
+        points(data$P, data$Y, pch=pch, type=type,...)
       })
     }
     if("lwr" %in% names(x$p) && plotci){

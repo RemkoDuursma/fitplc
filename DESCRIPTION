@@ -4,8 +4,9 @@ Title: Fit vulnerability (percent loss conductivity) curves
 Version: 0.1-3
 Author: Remko Duursma
 Maintainer: Remko Duursma <remkoduursma@gmail.com>
-Description: Fits the weibull equation to percent loss conductivity (plc) curves, computes SE of parameter
-    estimates and location of curve with bootstrap or parametric methods.
+Description: Fits the weibull equation to percent loss conductivity (plc)
+    curves, computes SE of parameter estimates and location of curve with
+    bootstrap or parametric methods.
 License: GPL
 Depends:
     car
