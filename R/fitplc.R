@@ -120,7 +120,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull",
     
 return(l)
 }    
-    
+
+
 #'@export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,

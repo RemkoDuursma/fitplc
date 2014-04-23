@@ -8,8 +8,8 @@ dfr <- subset(stemros, Species == "EuTe")
 eutefit <- fitplc(dfr, bootci=FALSE)
 
 fit2 <- fitplc(dfr, x=12)
-
-
+fit3 <- fitplc(dfr, x=50)
+getPx(fit3, 12)
 
 # fit all
 stemrosfits <- fitplcs(stemros, "Species", bootci=TRUE)
