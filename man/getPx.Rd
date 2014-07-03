@@ -7,7 +7,7 @@ getPx(fit, x = 50)
 }
 \description{
 In cases where fitplc does not converge (as is common when x=88 or other large/small values), this
-function can be used to extract esimates of Px from a fitted object. See examples. Note that the CI is approximate, and is based on the bootstrap resampling performed by fitplc.
+function can be used to extract esimates of Px from a fitted object. See examples. Note that the CI is approximate, and is based on the bootstrap resampling performed by fitplc. This function only works when \code{bootci=TRUE} when the curve was fit, luckily this is the default behaviour (see also examples below).
 }
 \details{
 Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). Or, perhaps better, just report the CI and not the SE.
