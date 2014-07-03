@@ -3,7 +3,7 @@
 # Stem at ROS
 stemros <- read.csv("test/stemvul-ros.csv")
 
-# fit one.
+# fit one, no bootCI
 dfr <- subset(stemros, Species == "EuTe")
 eutefit <- fitplc(dfr, bootci=FALSE)
 

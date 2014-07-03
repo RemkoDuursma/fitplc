@@ -9,7 +9,16 @@
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
+#' @param x A fitted curve returned by \code{fitplc}
+#' @param plotPx Logical (default TRUE), whether to plot a vertical line for the P50.
+#' @param plotci Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).
+#' @param plotdata Logical (default TRUE), whether to add the data to the plot.
+#' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
+#' @param linecol the color of the line
+#' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
 #' @details If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform weighted non-linear regression. See the final example on how to use this.
+#' 
+#' A plot method is available for the fitted object, see examples on how to use it.
 #' @export
 #' @rdname fitplc
 #' @examples
@@ -29,9 +38,12 @@
 #' # Look at fit
 #' pfit
 #' 
-#' # Make a standard plot. At the moment, can only plot 'relative conductivity',
+#' # Make a standard plot. The default plot is 'relative conductivity',
 #' # (which is 1.0 where PLC = 0).
 #' plot(pfit)
+#' 
+#' # Or plot the percent embolism
+#' plot(pfit, what="embol")
 #' 
 #' # Get the coefficients of the fit.
 #' coef(pfit)
@@ -143,6 +155,8 @@ return(l)
 }    
 
 
+
+#'@rdname fitplc
 #'@export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
