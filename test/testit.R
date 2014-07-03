@@ -7,6 +7,13 @@ stemros <- read.csv("test/stemvul-ros.csv")
 dfr <- subset(stemros, Species == "EuTe")
 eutefit <- fitplc(dfr, bootci=FALSE)
 
+w <- abs(50-dfr$PLC)^1
+eutefit <- fitplc(dfr, bootci=FALSE, Weights=w,
+                  start=list(Px=4.36,S=22.78 ))
+
+
+
+
 fit2 <- fitplc(dfr, x=12)
 fit3 <- fitplc(dfr, x=50)
 getPx(fit3, 12)

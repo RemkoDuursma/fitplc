@@ -48,8 +48,9 @@
 #' coef(allfit)
 #' }
 #' 
-fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull", 
+fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
+                   Weights=NULL,
                    bootci=TRUE){
 
                    
@@ -61,6 +62,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull",
     
     Y <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
+    
+    W <- if(varnames["Weights"] %in% names(data))
+      dfr[[varnames["Weights"]]]
+    else
+      NULL
     
     # check for NA
     if(any(is.na(c(Y,P))))stop("Remove missing values first.")
@@ -85,15 +91,15 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"), model="Weibull",
     # fit
     Data$X <- x
     message("Fitting nls ...", appendLF=FALSE)
-#     nlsfit <- nls(relK ~ fweibull(X, S, Px),
-#                   data=Data,start=list(S=Sh, Px=pxstart))
 
-#     nlsfit <- nls(relK ~ (1 - X/100)^((P/PX)^((PX * SX)/
-#                          (X - 100) * log(1 - X/100))),
-#                   data=Data, start=list(SX=Sh, PX=pxstart))
+    if(!is.null(W)){
+      nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
+                    data=Data, start=list(SX=Sh, PX=pxstart),
+                    weights=W)
+    } else {
       nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
                     data=Data, start=list(SX=Sh, PX=pxstart))
-
+    }
     message("done.")
     
     # bootstrap
