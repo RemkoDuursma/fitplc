@@ -60,7 +60,8 @@
 #' coef(pfit)
 #' }
 #' 
-fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), model="Weibull", 
+fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), 
+                   model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
                    Weights=NULL,
                    bootci=TRUE){
@@ -134,6 +135,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), mo
     l$ci <- cipars
     l$data <- data.frame(P=P, Y=Y, relK=relK)
     l$x <- x
+    l$bootci <- bootci
+    
     class(l) <- "plcfit"
     
 return(l)
@@ -144,9 +147,9 @@ return(l)
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         linecol="black", what=c("relk","embol"), ...){
+  
     if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
-    
-    
+      
     type <- ifelse(plotdata, 'p', 'n')
     what <- match.arg(what)
     
@@ -159,8 +162,10 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       if(is.null(ylab))ylab <- "% Embolism"
       
       x$data$Y <- 100 - 100*x$data$relK
-      x$p$lwr <- 100 - 100*x$p$lwr
-      x$p$upr <- 100 - 100*x$p$upr
+      if(x$bootci){
+        x$p$lwr <- 100 - 100*x$p$lwr
+        x$p$upr <- 100 - 100*x$p$upr
+      }
       x$p$pred <- 100 - 100*x$p$pred
       if(is.null(ylim))ylim <- c(0,100)
     }
@@ -177,7 +182,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
         points(data$P, data$Y, pch=pch, type=type,...)
       })
     }
-    if("lwr" %in% names(x$p) && plotci){
+    if(x$bootci && plotci){
       with(x$p,{
         lines(x, lwr, type='l', lty=5, col=linecol)
         lines(x, upr, type='l', lty=5, col=linecol)
