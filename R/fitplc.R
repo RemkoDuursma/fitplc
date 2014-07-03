@@ -5,10 +5,11 @@
 #' The function \code{fitplcs} can be used for batch fitting. See examples below for usage of \code{fitplc}
 #' or \code{fitplcs}.
 #' @param dfr A dataframe that contains water potential and plc data.
-#' @param varnames A vector specifying the names of the PLC and water potential data (WP) in the dataframe.
+#' @param varnames A vector specifying the names of the PLC, water potential data (WP), and optional Weights in the dataframe.
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
+#' @details If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform weighted non-linear regression. See the final example on how to use this.
 #' @export
 #' @rdname fitplc
 #' @examples
@@ -46,6 +47,17 @@
 #' # Coefficients show the estimates and 95% CI (given by 'lower' and 'upper')
 #' # Based on the CI's, species differences can be decided.
 #' coef(allfit)
+#' 
+#' # 3. Specify Weights. The default variable name is Weights, if present in the dataset
+#' # it will be used for weighted non-linear regression
+#' dfr_eute$Weights <- abs(50-dfr_eute$PLC)^1.2
+#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"))
+#' coef(pfit)
+#' 
+#' # NOTE: to turn weights off, remove from the dataframe
+#' dfr_eute$Weights <- NULL
+#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"))
+#' coef(pfit)
 #' }
 #' 
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), model="Weibull", 
@@ -63,7 +75,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), mo
     Y <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
     
-    W <- if(varnames["Weights"] %in% names(data))
+    W <- if(varnames["Weights"] %in% names(dfr))
       dfr[[varnames["Weights"]]]
     else
       NULL
