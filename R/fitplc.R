@@ -5,7 +5,8 @@
 #' The function \code{fitplcs} can be used for batch fitting. See examples below for usage of \code{fitplc}
 #' or \code{fitplcs}.
 #' @param dfr A dataframe that contains water potential and plc data.
-#' @param varnames A vector specifying the names of the PLC, water potential data (WP), and optional Weights in the dataframe.
+#' @param varnames A vector specifying the names of the PLC and water potential data (WP).
+#' @param weights A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
@@ -63,13 +64,9 @@
 #' # 3. Specify Weights. The default variable name is Weights, if present in the dataset
 #' # it will be used for weighted non-linear regression
 #' dfr_eute$Weights <- abs(50-dfr_eute$PLC)^1.2
-#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"))
+#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"), weights=Weights)
 #' coef(pfit)
 #' 
-#' # NOTE: to turn weights off, remove from the dataframe
-#' dfr_eute$Weights <- NULL
-#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"))
-#' coef(pfit)
 #' }
 #' 
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
