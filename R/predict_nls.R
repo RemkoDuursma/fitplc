@@ -1,6 +1,6 @@
 predict_nls <- function(object, xvarname=NULL, from=NULL, to=NULL, x=NULL,interval = c("none", "confidence"), 
                         level=0.95, 
-                        n=101, nboot=999, add=TRUE, data, startList, ...){
+                        n=101, nboot=999, add=TRUE, data, startList, weights=NULL, ...){
   
   
   interval <- match.arg(interval)
@@ -32,9 +32,7 @@ predict_nls <- function(object, xvarname=NULL, from=NULL, to=NULL, x=NULL,interv
   if(interval == "confidence"){
     d <- (1-level)/2
     
-     b <- fitplc:::bootfit(object, n=nboot, Data=data, startList=startList)
-#    b <- bootCase(object, B=nboot)
-    
+    b <- fitplc:::bootfit(object, n=nboot, Data=data, startList=startList, weights=weights)
 
     parnames <- names(coef(object))
     npars <- length(parnames)

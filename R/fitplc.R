@@ -72,7 +72,8 @@
 #' coef(pfit)
 #' }
 #' 
-fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"), 
+fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
+                   weights=NULL,
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
                    Weights=NULL,
@@ -88,10 +89,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"),
     Y <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
     
-    W <- if(varnames["Weights"] %in% names(dfr))
-      dfr[[varnames["Weights"]]]
-    else
-      NULL
+    W <- eval(substitute(weights), dfr)
     
     # check for NA
     if(any(is.na(c(Y,P))))stop("Remove missing values first.")
@@ -131,11 +129,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa", Weights="Weights"),
     if(bootci){
       message("Fitting to bootstrap replicates ...", appendLF=FALSE)
       p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
-                       startList=list(SX=Sh, PX=pxstart))
+                       startList=list(SX=Sh, PX=pxstart), weights=W)
       message("done.")
     } else {
       p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
-                       startList=list(SX=Sh, PX=pxstart))
+                       startList=list(SX=Sh, PX=pxstart), weights=W)
     }
     
     # ci on pars.

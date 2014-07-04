@@ -5,7 +5,7 @@
 \alias{plot.plcfit}
 \title{Fit PLC curves}
 \usage{
-fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa", Weights = "Weights"),
+fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   model = "Weibull", startvalues = list(Px = 3, S = 20), x = 50,
   Weights = NULL, bootci = TRUE)
 

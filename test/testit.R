@@ -8,15 +8,15 @@ dfr <- subset(stemros, Species == "EuTe")
 eutefit <- fitplc(dfr, bootci=FALSE)
 
 
-# With weights
-dfr$Weights <- abs(50-dfr$PLC)^1
-eutefit1 <- fitplc(dfr, bootci=FALSE,
-                  start=list(Px=4.36,S=22.78 ))
 
-# Turn weights off again
-dfr$Weights <- NULL
-eutefit2 <- fitplc(dfr, bootci=FALSE,
-                  start=list(Px=4.36,S=22.78 ))
+# 
+dfr$Weights <- abs(50-dfr$PLC)^1
+eutefit1 <- fitplc(dfr,  start=list(Px=4.36,S=22.78 ),
+                   weights=Weights)
+
+eutefit1 <- fitplc(dfr,  start=list(Px=4.36,S=22.78 ),
+                   weights=NULL)
+
 
 
 
