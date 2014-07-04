@@ -133,13 +133,28 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                        startList=list(SX=Sh, PX=pxstart), weights=W)
     }
     
+    
     # ci on pars.
     cipars <- suppressMessages(confint(nlsfit))
+    
+    if(bootci){
+      cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
+      cipx <- quantile(p$boot[,"PX"], c(0.025,0.975))
+      # theoretically OK but in practice we get garbage SEs
+#       sesx <- sd(p$boot[,"SX"])
+#       sepx <- sd(p$boot[,"PX"])
+      
+      bootpars <- matrix(c(coef(nlsfit),cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
+                         dimnames=list(c("SX","PX"),c("Estimate","2.5%","97.5%")))
+    } else {
+      bootpars <- NA
+    }               
     
     l <- list()
     l$fit <- nlsfit
     l$pred <- p
     l$ci <- cipars
+    l$bootpars <- bootpars
     l$data <- data.frame(P=P, Y=Y, relK=relK)
     l$x <- x
     l$bootci <- bootci
@@ -155,7 +170,11 @@ return(l)
 #'@export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
+                        selines=c("parametric","bootstrap"),
                         linecol="black", what=c("relk","embol"), ...){
+  
+  
+    selines <- match.arg(selines)
   
     if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
       
@@ -205,10 +224,11 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       px <- coef(x$fit)["PX"]
       abline(v=px, col="red")
       
-      # method 1 : bootstrap
-      #p50_ci <- quantile(x$p$boot[,2], c(0.025, 0.975))
-      # method 2: confint (parametric)
-      px_ci <- x$ci[2,]
+      if(selines == "bootstrap"){
+        px_ci <- x$bootpars[2,2:3]
+      } else {
+        px_ci <- x$ci[2,]
+      }
       
       abline(v=px_ci, col="red", lty=5)
       mtext(side=3, at=px, text=expression(Px), line=0, col="red", cex=0.7)
@@ -228,10 +248,17 @@ print.plcfit <- function(x,...){
 }
 
 #'@export
-coef.plcfit <- function(object,...){
+coef.plcfit <- function(object, which=c("parametric","bootstrap"), ...){
   
-  Estimate <- summary(object$fit)$coefficients[,1:2]
-  Table <- cbind(Estimate, object$ci)
+  which <- match.arg(which)
+  
+  if(which == "parametric"){
+    Estimate <- summary(object$fit)$coefficients[,1:2]
+    Table <- cbind(Estimate, object$ci)
+  } else {
+    if(!object$bootci)stop("First refit model with bootci=TRUE")
+    Table <- object$bootpars
+  }
   
 return(Table)
 }
