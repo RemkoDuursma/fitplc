@@ -71,6 +71,7 @@
 #' 
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
+                   random=NULL,
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
                    Weights=NULL,
@@ -86,6 +87,17 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Y <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
     
+    if(!is.null(substitute(random))){
+      G <- eval(substitute(random), dfr)
+      fitran <- TRUE
+      if(bootci){
+        bootci <- FALSE
+        message("Not performing bootstrap when random effects present.")
+      }
+    } else {
+      fitran <- FALSE
+    }
+    
     W <- eval(substitute(weights), dfr)
     
     # check for NA
@@ -97,7 +109,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # Calculate relative conductivity:
     relK <- (100 - Y)/100
     
-    Data <- data.frame(P=P, relK=relK)
+    if(!fitran){
+      Data <- data.frame(P=P, relK=relK)
+    } else {
+      Data <- data.frame(P=P, relK=relK, G=G)
+    }
     
     # guess starting values
     if(is.null(startvalues)){
@@ -112,13 +128,33 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Data$X <- x
     message("Fitting nls ...", appendLF=FALSE)
 
+    # Weighted NLS
     if(!is.null(W)){
-      nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
+        nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
                     data=Data, start=list(SX=Sh, PX=pxstart),
                     weights=W)
+        if(fitran){
+          nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+                     fixed=list(SX ~ 1, PX ~ 1),
+                     random= SX + PX ~ 1|G,
+                     start=list(fixed=c(SX=coef(nlsfit)["SX"], 
+                                        PX=coef(nlsfit)["PX"])),
+                     weights=W,
+                     data=Data)
+        }
     } else {
+      
+    # Ordinary NLS
       nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
                     data=Data, start=list(SX=Sh, PX=pxstart))
+      if(fitran){
+        nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+                        fixed=list(SX ~ 1, PX ~ 1),
+                        random= SX + PX ~ 1|G,
+                        start=list(fixed=c(SX=coef(nlsfit)["SX"], 
+                                           PX=coef(nlsfit)["PX"])),
+                        data=Data)
+      }
     }
     message("done.")
     
@@ -157,6 +193,17 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     l$bootpars <- bootpars
     l$data <- data.frame(P=P, Y=Y, relK=relK)
     l$x <- x
+    l$fitran <- fitran
+    if(fitran){
+      l$nlmefit <- nlmefit
+      l$cinlme <- intervals(nlmefit,which="fixed")$fixed
+      l$ranvar <- substitute(random)
+    } else {
+      l$nlmefit <- NA
+      l$cinlme <- NA
+      l$ranvar <- NA
+    }
+      
     l$bootci <- bootci
     
     class(l) <- "plcfit"
@@ -240,6 +287,9 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 print.plcfit <- function(x,...){
   cat("Class of object 'plcfit' as returned by 'fitplc'.\n")
   cat("-------------------------------------------------\n\n")
+  if(x$fitran){
+    cat("Random effects estimated for ",x$ranvar,"\n")
+  }
   cat("Parameters, SE, and 95% confidence interval:\n\n")
   cat()
   
@@ -252,12 +302,19 @@ coef.plcfit <- function(object, which=c("parametric","bootstrap"), ...){
   
   which <- match.arg(which)
   
-  if(which == "parametric"){
-    Estimate <- summary(object$fit)$coefficients[,1:2]
-    Table <- cbind(Estimate, object$ci)
+  if(object$fitran){
+    Estimate <- object$cinlme[,2]
+    SE <- summary(object$nlmefit)$tTable[,2]
+    Table <- cbind(Estimate, SE, object$cinlme[,c(1,3)])
+    colnames(Table) <- c("Estimate","Std. Error","2.5%","97.5%")
   } else {
-    if(!object$bootci)stop("First refit model with bootci=TRUE")
-    Table <- object$bootpars
+    if(which == "parametric"){
+      Estimate <- summary(object$fit)$coefficients[,1:2]
+      Table <- cbind(Estimate, object$ci)
+    } else {
+      if(!object$bootci)stop("First refit model with bootci=TRUE")
+      Table <- object$bootpars
+    }
   }
   
 return(Table)
