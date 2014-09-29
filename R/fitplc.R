@@ -7,6 +7,7 @@
 #' @param dfr A dataframe that contains water potential and plc data.
 #' @param varnames A vector specifying the names of the PLC and water potential data (WP).
 #' @param weights A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).
+#' @param random Variable that specified random effects (unquoted; must be present in dfr).
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
@@ -17,7 +18,13 @@
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
 #' @param linecol the color of the line
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
-#' @details If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform weighted non-linear regression. See the final example on how to use this.
+#' @details If a variable with the name Weights is present in the dataframe, 
+#' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
+#' weighted non-linear regression. See the final example on how to use this.
+#' 
+#' If the \code{random} argument specifies a factor variable present in the dataframe, random effects will 
+#' be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects.
+#'
 #' 
 #' A plot method is available for the fitted object, see examples on how to use it.
 #' @export

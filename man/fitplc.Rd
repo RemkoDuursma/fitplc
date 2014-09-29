@@ -23,6 +23,8 @@ fitplcs(dfr, group, ...)
 
 \item{weights}{A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).}
 
+\item{random}{Variable that specified random effects (unquoted; must be present in dfr).}
+
 \item{model}{At the moment, only 'Weibull' is allowed.}
 
 \item{startvalues}{A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.}
@@ -55,7 +57,13 @@ The function \code{fitplcs} can be used for batch fitting. See examples below fo
 or \code{fitplcs}.
 }
 \details{
-If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform weighted non-linear regression. See the final example on how to use this.
+If a variable with the name Weights is present in the dataframe,
+this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform
+weighted non-linear regression. See the final example on how to use this.
+
+If the \code{random} argument specifies a factor variable present in the dataframe, random effects will
+be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects.
+
 
 A plot method is available for the fitted object, see examples on how to use it.
 }
