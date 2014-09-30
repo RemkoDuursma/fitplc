@@ -272,7 +272,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
         x$pred$lwr <- toEmbol(x$pred$lwr)
         x$pred$upr <- toEmbol(x$pred$upr)
       }
-      x$p$pred <- toEmbol(x$pred$pred)
+      x$pred$pred <- toEmbol(x$pred$pred)
       if(is.null(ylim))ylim <- c(0,100)
       
       if(x$fitran && plotrandom){
