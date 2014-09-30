@@ -95,7 +95,9 @@ plot(pfit, what="embol")
 coef(pfit)
 
 # 2. Fit all species in the dataset.
-allfit <- fitplcs(dfr, "Species", varnames=c(PLC="PLC", WP="MPa"))
+# Here we also set the starting values (which is sometimes needed).
+allfit <- fitplcs(dfr, "Species", varnames=c(PLC="PLC", WP="MPa"),
+startvalues=list(Px=4, Sx=10))
 
 # Make three plots
 # windows(10,8) # optional : open up a window and split.

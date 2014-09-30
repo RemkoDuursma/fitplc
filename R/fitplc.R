@@ -355,6 +355,11 @@ print.plcfit <- function(x,...){
 }
 
 #'@export
+summary.plcfit <- function(object, ...){
+  print(object,...)
+}
+
+#'@export
 coef.plcfit <- function(object, which=c("parametric","bootstrap"), ...){
   
   which <- match.arg(which)
