@@ -7,6 +7,7 @@
 #' @param dfr A dataframe that contains water potential and plc data.
 #' @param varnames A vector specifying the names of the PLC and water potential data (WP).
 #' @param weights A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).
+#' @param random Variable that specified random effects (unquoted; must be present in dfr).
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
@@ -17,7 +18,13 @@
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
 #' @param linecol the color of the line
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
-#' @details If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform weighted non-linear regression. See the final example on how to use this.
+#' @details If a variable with the name Weights is present in the dataframe, 
+#' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
+#' weighted non-linear regression. See the final example on how to use this.
+#' 
+#' If the \code{random} argument specifies a factor variable present in the dataframe, random effects will 
+#' be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects.
+#'
 #' 
 #' A plot method is available for the fitted object, see examples on how to use it.
 #' @export
@@ -50,7 +57,9 @@
 #' coef(pfit)
 #' 
 #' # 2. Fit all species in the dataset.
-#' allfit <- fitplcs(dfr, "Species", varnames=c(PLC="PLC", WP="MPa"))
+#' # Here we also set the starting values (which is sometimes needed).
+#' allfit <- fitplcs(dfr, "Species", varnames=c(PLC="PLC", WP="MPa"),
+#' startvalues=list(Px=4, Sx=10))
 #' 
 #' # Make three plots
 #' # windows(10,8) # optional : open up a window and split.
@@ -71,6 +80,7 @@
 #' 
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
+                   random=NULL,
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
                    Weights=NULL,
@@ -86,6 +96,17 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Y <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
     
+    if(!is.null(substitute(random))){
+      G <- eval(substitute(random), dfr)
+      fitran <- TRUE
+      if(bootci){
+        bootci <- FALSE
+        message("Not performing bootstrap when random effects present.")
+      }
+    } else {
+      fitran <- FALSE
+    }
+    
     W <- eval(substitute(weights), dfr)
     
     # check for NA
@@ -97,7 +118,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # Calculate relative conductivity:
     relK <- (100 - Y)/100
     
-    Data <- data.frame(P=P, relK=relK)
+    if(!fitran){
+      Data <- data.frame(P=P, relK=relK)
+    } else {
+      Data <- data.frame(P=P, relK=relK, G=G)
+    }
     
     # guess starting values
     if(is.null(startvalues)){
@@ -112,13 +137,33 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Data$X <- x
     message("Fitting nls ...", appendLF=FALSE)
 
+    # Weighted NLS
     if(!is.null(W)){
-      nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
+        nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
                     data=Data, start=list(SX=Sh, PX=pxstart),
                     weights=W)
+        if(fitran){
+          nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+                     fixed=list(SX ~ 1, PX ~ 1),
+                     random= SX + PX ~ 1|G,
+                     start=list(fixed=c(SX=coef(nlsfit)["SX"], 
+                                        PX=coef(nlsfit)["PX"])),
+                     weights=W,
+                     data=Data)
+        }
     } else {
+      
+    # Ordinary NLS
       nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
                     data=Data, start=list(SX=Sh, PX=pxstart))
+      if(fitran){
+        nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+                        fixed=list(SX ~ 1, PX ~ 1),
+                        random= SX + PX ~ 1|G,
+                        start=list(fixed=c(SX=coef(nlsfit)["SX"], 
+                                           PX=coef(nlsfit)["PX"])),
+                        data=Data)
+      }
     }
     message("done.")
     
@@ -133,6 +178,26 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                        startList=list(SX=Sh, PX=pxstart), weights=W)
     }
     
+    # Predictions at innermost random effect
+    if(fitran){
+      
+      d <- split(Data, Data$G)
+      pm <- list()
+      for(i in 1:length(d)){
+        ps <- seq(min(d[[i]]$P),max(d[[i]]$P),length=101)
+        newdat <- data.frame(P=ps, 
+                             G=unique(d[[i]]$G), X=x)
+        y <- predict(nlmefit, newdat)
+        pm[[i]] <- data.frame(x=ps, y=y) 
+      }
+      ps <- seq(min(P),max(P),length=101)
+      newdat <- data.frame(P=ps, X=x)
+      pmf <- data.frame(x=ps, y=predict(nlmefit, newdat, level=0))
+      
+    } else {
+      pm <- NA
+      pmf <- NA
+    }
     
     # ci on pars.
     cipars <- suppressMessages(confint(nlsfit))
@@ -140,10 +205,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     if(bootci){
       cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
       cipx <- quantile(p$boot[,"PX"], c(0.025,0.975))
-      # theoretically OK but in practice we get garbage SEs
-#       sesx <- sd(p$boot[,"SX"])
-#       sepx <- sd(p$boot[,"PX"])
-      
+
       bootpars <- matrix(c(coef(nlsfit),cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
                          dimnames=list(c("SX","PX"),c("Estimate","2.5%","97.5%")))
     } else {
@@ -153,10 +215,23 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     l <- list()
     l$fit <- nlsfit
     l$pred <- p
+    l$prednlme <- pm
+    l$prednlmefix <- pmf
     l$ci <- cipars
     l$bootpars <- bootpars
     l$data <- data.frame(P=P, Y=Y, relK=relK)
     l$x <- x
+    l$fitran <- fitran
+    if(fitran){
+      l$nlmefit <- nlmefit
+      l$cinlme <- intervals(nlmefit,which="fixed")$fixed
+      l$ranvar <- substitute(random)
+    } else {
+      l$nlmefit <- NA
+      l$cinlme <- NA
+      l$ranvar <- NA
+    }
+      
     l$bootci <- bootci
     
     class(l) <- "plcfit"
@@ -171,6 +246,7 @@ return(l)
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         selines=c("parametric","bootstrap"),
+                        plotrandom=FALSE,
                         linecol="black", what=c("relk","embol"), ...){
   
   
@@ -181,21 +257,35 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     type <- ifelse(plotdata, 'p', 'n')
     what <- match.arg(what)
     
+    if(plotrandom && !x$fitran)
+      stop("To plot random effects predictions, refit with 'random' argument.")
+    
     if(what == "relk"){
       if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
       x$data$Y <- x$data$relK
       if(is.null(ylim))ylim <- c(0,1)
     }
+    toEmbol <- function(k)100 - 100*k
     if(what == "embol"){
       if(is.null(ylab))ylab <- "% Embolism"
       
-      x$data$Y <- 100 - 100*x$data$relK
+      x$data$Y <- toEmbol(x$data$relK)
       if(x$bootci){
-        x$p$lwr <- 100 - 100*x$p$lwr
-        x$p$upr <- 100 - 100*x$p$upr
+        x$pred$lwr <- toEmbol(x$pred$lwr)
+        x$pred$upr <- toEmbol(x$pred$upr)
       }
-      x$p$pred <- 100 - 100*x$p$pred
+      x$pred$pred <- toEmbol(x$pred$pred)
       if(is.null(ylim))ylim <- c(0,100)
+      
+      if(x$fitran && plotrandom){
+        
+        ng <- length(x$prednlme)
+        for(i in 1:ng){
+          x$prednlme[[i]]$y <- toEmbol(x$prednlme[[i]]$y)
+        }
+        x$prednlmefix$y <- toEmbol(x$prednlmefix$y)
+      }
+      
     }
     
     if(!add){
@@ -210,26 +300,40 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
         points(data$P, data$Y, pch=pch, type=type,...)
       })
     }
-    if(x$bootci && plotci){
-      with(x$p,{
-        lines(x, lwr, type='l', lty=5, col=linecol)
-        lines(x, upr, type='l', lty=5, col=linecol)
-      })      
+    if(!plotrandom){
+      if(x$bootci && plotci){
+        with(x$pred,{
+          lines(x, lwr, type='l', lty=5, col=linecol)
+          lines(x, upr, type='l', lty=5, col=linecol)
+        })      
+      }
+      with(x$pred,{
+        lines(x, pred, type='l', lty=1, col=linecol)
+      })
     }
-    with(x$p,{
-      lines(x, pred, type='l', lty=1, col=linecol)
-    })
+    
+    if(plotrandom){
+      for(i in 1:length(x$prednlme)){
+        with(x$prednlme[[i]], lines(x,y,type='l'))
+      }  
+      with(x$prednlmefix, lines(x,y,type='l',lwd=2, col="blue"))
+    }
     
     if(plotPx){
-      px <- coef(x$fit)["PX"]
-      abline(v=px, col="red")
-      
-      if(selines == "bootstrap"){
-        px_ci <- x$bootpars[2,2:3]
+      if(!x$fitran){
+        px <- coef(x$fit)["PX"]
+        
+        if(selines == "bootstrap"){
+          px_ci <- x$bootpars[2,2:3]
+        } else {
+          px_ci <- x$ci[2,]
+        }
       } else {
-        px_ci <- x$ci[2,]
+        px <- fixef(x$nlmefit)["PX"]
+        px_ci <- x$cinlme[2,]
       }
       
+      abline(v=px, col="red")
       abline(v=px_ci, col="red", lty=5)
       mtext(side=3, at=px, text=expression(Px), line=0, col="red", cex=0.7)
     }
@@ -240,6 +344,9 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 print.plcfit <- function(x,...){
   cat("Class of object 'plcfit' as returned by 'fitplc'.\n")
   cat("-------------------------------------------------\n\n")
+  if(x$fitran){
+    cat("Random effects estimated for ",x$ranvar,"\n")
+  }
   cat("Parameters, SE, and 95% confidence interval:\n\n")
   cat()
   
@@ -248,16 +355,28 @@ print.plcfit <- function(x,...){
 }
 
 #'@export
+summary.plcfit <- function(object, ...){
+  print(object,...)
+}
+
+#'@export
 coef.plcfit <- function(object, which=c("parametric","bootstrap"), ...){
   
   which <- match.arg(which)
   
-  if(which == "parametric"){
-    Estimate <- summary(object$fit)$coefficients[,1:2]
-    Table <- cbind(Estimate, object$ci)
+  if(object$fitran){
+    Estimate <- object$cinlme[,2]
+    SE <- summary(object$nlmefit)$tTable[,2]
+    Table <- cbind(Estimate, SE, object$cinlme[,c(1,3)])
+    colnames(Table) <- c("Estimate","Std. Error","2.5%","97.5%")
   } else {
-    if(!object$bootci)stop("First refit model with bootci=TRUE")
-    Table <- object$bootpars
+    if(which == "parametric"){
+      Estimate <- summary(object$fit)$coefficients[,1:2]
+      Table <- cbind(Estimate, object$ci)
+    } else {
+      if(!object$bootci)stop("First refit model with bootci=TRUE")
+      Table <- object$bootpars
+    }
   }
   
 return(Table)

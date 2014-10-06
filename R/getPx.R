@@ -21,11 +21,20 @@
 getPx <- function(fit, x=50){
   
   X <- 1 - x/100
-  p <- approx(x=fit$p$pred, y=fit$p$x, xout=X)$y
-  lwrci <- approx(x=fit$p$lwr, y=fit$p$x, xout=X)$y
-  uprci <- approx(x=fit$p$upr, y=fit$p$x, xout=X)$y
+  p <- approx(x=fit$pred$pred, y=fit$pred$x, xout=X)$y
+  if(fit$bootci){
+    lwrci <- approx(x=fit$pred$lwr, y=fit$pred$x, xout=X)$y
+    uprci <- approx(x=fit$pred$upr, y=fit$pred$x, xout=X)$y
+    
+    vec <- c(p, lwrci, uprci)
+    names(vec) <- c(paste0("P",x),"2.5%","97.5%")
+    return(vec)
+  } else {
+    lwrci <- NA
+    uprci <- NA
+    vec <- p
+    names(vec) <- paste0("P",x)
+    return(vec)
+  }
   
-  vec <- c(p, lwrci, uprci)
-  names(vec) <- c(paste0("P",x),"2.5%","97.5%")
-return(vec)
 }
