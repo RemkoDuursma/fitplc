@@ -16,8 +16,10 @@
 #' @param plotci Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).
 #' @param plotdata Logical (default TRUE), whether to add the data to the plot.
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
-#' @param linecol the color of the line
+#' @param linecol The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
+#' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
+#' @param cex.text Character size for text annotation (i.e. Px in margin)
 #' @details If a variable with the name Weights is present in the dataframe, 
 #' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
 #' weighted non-linear regression. See the final example on how to use this.

@@ -4,7 +4,10 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         selines=c("parametric","bootstrap"),
                         plotrandom=FALSE,
-                        linecol="black", what=c("relk","embol"), ...){
+                        linecol="black", 
+                        linecol2="blue",
+                        what=c("relk","embol"), 
+                        cex.text=0.9,...){
   
   
   selines <- match.arg(selines)
@@ -14,16 +17,22 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   type <- ifelse(plotdata, 'p', 'n')
   what <- match.arg(what)
   
-  if(plotrandom && !x$fitran)
-    stop("To plot random effects predictions, refit with 'random' argument.")
+  if(plotrandom && !x$fitran){
+    warning("To plot random effects predictions, refit with 'random' argument.")
+    plotrandom <- FALSE
+  }
   
   if(what == "relk"){
     if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
     x$data$Y <- x$data$relK
     if(is.null(ylim))ylim <- c(0,1)
   }
-  toEmbol <- function(k)100 - 100*k
+  
+  
   if(what == "embol"){
+  
+    toEmbol <- function(k)100 - 100*k
+    
     if(is.null(ylab))ylab <- "% Embolism"
     
     x$data$Y <- toEmbol(x$data$relK)
@@ -34,7 +43,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     x$pred$pred <- toEmbol(x$pred$pred)
     if(is.null(ylim))ylim <- c(0,100)
     
-    if(x$fitran && plotrandom){
+    if(x$fitran){
       
       ng <- length(x$prednlme)
       for(i in 1:ng){
@@ -57,7 +66,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       points(data$P, data$Y, pch=pch, type=type,...)
     })
   }
-  if(!plotrandom){
+  
+  if(!x$fitran){
     if(x$bootci && plotci){
       with(x$pred,{
         lines(x, lwr, type='l', lty=5, col=linecol)
@@ -69,11 +79,16 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     })
   }
   
-  if(plotrandom){
-    for(i in 1:length(x$prednlme)){
-      with(x$prednlme[[i]], lines(x,y,type='l'))
-    }  
-    with(x$prednlmefix, lines(x,y,type='l',lwd=2, col="blue"))
+  if(x$fitran){
+    if(plotrandom){
+      for(i in 1:length(x$prednlme)){
+        with(x$prednlme[[i]], lines(x,y,type='l',col=linecol))
+      }  
+      with(x$prednlmefix, lines(x,y,type='l',lwd=2, col=linecol2))
+    } else {
+      with(x$prednlmefix, lines(x,y,type='l', col=linecol))  
+    }
+    
   }
   
   if(plotPx){
@@ -92,7 +107,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     
     abline(v=px, col="red")
     abline(v=px_ci, col="red", lty=5)
-    mtext(side=3, at=px, text=expression(Px), line=0, col="red", cex=0.7)
+    mtext(side=3, at=px, text=expression(P[x]), line=0, col="red", cex=cex.text)
   }
   
 }

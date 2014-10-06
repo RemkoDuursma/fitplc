@@ -9,12 +9,13 @@ fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = "Weibull", startvalues = list(Px = 3, S = 20),
   x = 50, Weights = NULL, bootci = TRUE)
 
+fitplcs(dfr, group, ...)
+
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
   add = FALSE, selines = c("parametric", "bootstrap"), plotrandom = FALSE,
-  linecol = "black", what = c("relk", "embol"), ...)
-
-fitplcs(dfr, group, ...)
+  linecol = "black", linecol2 = "blue", what = c("relk", "embol"),
+  cex.text = 0.9, ...)
 }
 \arguments{
 \item{dfr}{A dataframe that contains water potential and plc data.}
@@ -33,6 +34,8 @@ fitplcs(dfr, group, ...)
 
 \item{bootci}{If TRUE, also computes the bootstrap confidence interval.}
 
+\item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
+
 \item{plotPx}{Logical (default TRUE), whether to plot a vertical line for the P50.}
 
 \item{plotci}{Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).}
@@ -41,11 +44,13 @@ fitplcs(dfr, group, ...)
 
 \item{add}{Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.}
 
-\item{linecol}{the color of the line}
+\item{linecol}{The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).}
+
+\item{linecol2}{The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).}
 
 \item{what}{Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.}
 
-\item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
+\item{cex.text}{Character size for text annotation (i.e. Px in margin)}
 
 \item{\dots}{Further parameters passed to \code{fitplc}.}
 }
