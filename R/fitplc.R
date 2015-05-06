@@ -202,7 +202,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     }
     
     # ci on pars.
-    cipars <- suppressMessages(confint(nlsfit))
+    cipars <- try(suppressMessages(confint(nlsfit)), silent=TRUE)
+    if(inherits(cipars, "try-error")){
+      cipars <- matrix(rep(NA,4),ncol=2)
+      dimnames(cipars) <- list(c("SX","PX"), c("2.5%","97.5%")) 
+    }
     
     if(bootci){
       cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
