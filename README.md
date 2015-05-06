@@ -15,7 +15,7 @@ More features will be added soon. To let me know which features should be implem
 To install `fitplc`, use this command in R:
 ```
 library(devtools)
-install_bitbucket("fitplc","remkoduursma")
+install_bitbucket("remkoduursma/fitplc")
 library(fitplc)
 ```
 
@@ -27,4 +27,3 @@ Windows users must have Rtools installed for this to work (http://cran.r-project
 Example for a leaf vulnerability curve.
 
 ![leafvulexample](https://bitbucket.org/remkoduursma/fitplc/raw/master/test/plcfitexample.jpg)
-
