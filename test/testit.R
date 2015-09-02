@@ -90,6 +90,16 @@ plot(leafvulfits[[2]], xlim=c(1,7), ylim=c(0,1.1))
 dev.off()
 
 
+jpeg("test/plcfitexample2.jpg", width=368, height=256, quality=100, pointsize=10,
+     antialias="cleartype")
+par(xaxs="i", yaxs="i", cex.lab=1.2, mar=c(5,5,2,1), cex.axis=1.2)
+plot(leafvulfits[[2]], xlim=c(1,7), ylim=c(0,1.1))
+dev.off()
+
+windows(5,4)
+par(xaxs="i", yaxs="i", cex.lab=1.2, mar=c(5,5,2,1), cex.axis=1.2)
+plot(leafvulfits[[2]], xlim=c(1,7), ylim=c(0,1.1))
+dev.copy2pdf(file="test/plcfitexample.pdf")
 
 
 # overlap <- function(vec1, vec2){
