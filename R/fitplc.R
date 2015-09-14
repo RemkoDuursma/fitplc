@@ -17,9 +17,12 @@
 #' @param plotdata Logical (default TRUE), whether to add the data to the plot.
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
 #' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
-#' @param linecol The color of the fitted line
+#' @param linecol The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
+#' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
+#' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
+#' @param cex.text Character size for text annotation (i.e. Px in margin)
 #' @details If a variable with the name Weights is present in the dataframe, 
 #' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
 #' weighted non-linear regression. See the final example on how to use this.
@@ -202,7 +205,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     }
     
     # ci on pars.
-    cipars <- suppressMessages(confint(nlsfit))
+    cipars <- try(suppressMessages(confint(nlsfit)), silent=TRUE)
+    if(inherits(cipars, "try-error")){
+      cipars <- matrix(rep(NA,4),ncol=2)
+      dimnames(cipars) <- list(c("SX","PX"), c("2.5%","97.5%")) 
+    }
     
     if(bootci){
       cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
@@ -240,216 +247,5 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     
 return(l)
 }    
-
-
-
-#'@rdname fitplc
-#'@export
-plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
-                        plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
-                        selines=c("parametric","bootstrap"),
-                        plotrandom=FALSE,
-                        linecol="black", 
-                        pxlinecol="red",
-                        citype=c("polygon","lines"),
-                        what=c("relk","embol"), ...){
-  
-  
-    selines <- match.arg(selines)
-    citype <- match.arg(citype)
-    
-    if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
-      
-    type <- ifelse(plotdata, 'p', 'n')
-    what <- match.arg(what)
-    
-    if(plotrandom && !x$fitran)
-      stop("To plot random effects predictions, refit with 'random' argument.")
-    
-    if(what == "relk"){
-      if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
-      x$data$Y <- x$data$relK
-      if(is.null(ylim))ylim <- c(0,1)
-    }
-    toEmbol <- function(k)100 - 100*k
-    if(what == "embol"){
-      if(is.null(ylab))ylab <- "% Embolism"
-      
-      x$data$Y <- toEmbol(x$data$relK)
-      if(x$bootci){
-        x$pred$lwr <- toEmbol(x$pred$lwr)
-        x$pred$upr <- toEmbol(x$pred$upr)
-      }
-      x$pred$pred <- toEmbol(x$pred$pred)
-      if(is.null(ylim))ylim <- c(0,100)
-      
-      if(x$fitran && plotrandom){
-        
-        ng <- length(x$prednlme)
-        for(i in 1:ng){
-          x$prednlme[[i]]$y <- toEmbol(x$prednlme[[i]]$y)
-        }
-        x$prednlmefix$y <- toEmbol(x$prednlmefix$y)
-      }
-      
-    }
-    
-    if(!add){
-      with(x, {
-      plot(data$P, data$Y, ylim=ylim, pch=pch,
-           xlab=xlab,
-           type=type,
-           ylab=ylab, ...)
-      })
-    } else {
-      with(x, {
-        points(data$P, data$Y, pch=pch, type=type,...)
-      })
-    }
-    if(!plotrandom){
-      if(x$bootci && plotci){
-        if(citype == "lines"){
-          with(x$pred,{
-            lines(x, lwr, type='l', lty=5, col=linecol)
-            lines(x, upr, type='l', lty=5, col=linecol)
-          })
-        }
-        if(citype == "polygon"){
-          with(x$pred, addpoly(x,lwr,upr))
-          # replot points
-          if(plotdata){
-            with(x, {
-              points(data$P, data$Y, pch=pch, type=type,...)
-            })
-          }
-        }
-        
-      }
-      with(x$pred,{
-        lines(x, pred, type='l', lty=1, col=linecol)
-      })
-    }
-    
-    if(plotrandom){
-      for(i in 1:length(x$prednlme)){
-        with(x$prednlme[[i]], lines(x,y,type='l'))
-      }  
-      with(x$prednlmefix, lines(x,y,type='l',lwd=2, col="blue"))
-    }
-    
-    if(plotPx){
-      if(!x$fitran){
-        px <- coef(x$fit)["PX"]
-        
-        if(selines == "bootstrap"){
-          px_ci <- x$bootpars[2,2:3]
-        } else {
-          px_ci <- x$ci[2,]
-        }
-      } else {
-        px <- fixef(x$nlmefit)["PX"]
-        px_ci <- x$cinlme[2,]
-      }
-      
-      abline(v=px, col=pxlinecol)
-      abline(v=px_ci, col=pxlinecol, lty=5)
-      mtext(side=3, at=px, text=expression(Px), line=0, col=pxlinecol, cex=0.7)
-    }
-    
-}
-
-#'@export
-print.plcfit <- function(x,...){
-  cat("Class of object 'plcfit' as returned by 'fitplc'.\n")
-  cat("-------------------------------------------------\n\n")
-  if(x$fitran){
-    cat("Random effects estimated for ",x$ranvar,"\n")
-  }
-  cat("Parameters, SE, and 95% confidence interval:\n\n")
-  cat()
-  
-  print(coef(x))
-  cat("\n")
-}
-
-#'@export
-summary.plcfit <- function(object, ...){
-  print(object,...)
-}
-
-#'@export
-coef.plcfit <- function(object, which=c("parametric","bootstrap"), ...){
-  
-  which <- match.arg(which)
-  
-  if(object$fitran){
-    Estimate <- object$cinlme[,2]
-    SE <- summary(object$nlmefit)$tTable[,2]
-    Table <- cbind(Estimate, SE, object$cinlme[,c(1,3)])
-    colnames(Table) <- c("Estimate","Std. Error","2.5%","97.5%")
-  } else {
-    if(which == "parametric"){
-      Estimate <- summary(object$fit)$coefficients[,1:2]
-      Table <- cbind(Estimate, object$ci)
-    } else {
-      if(!object$bootci)stop("First refit model with bootci=TRUE")
-      Table <- object$bootpars
-    }
-  }
-  
-return(Table)
-}
-
-#' @export
-#' @rdname fitplc
-#' @param group Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.
-#' @param \dots Further parameters passed to \code{fitplc}.
-fitplcs <- function(dfr, group, ...){
-  
-  if(!group %in% names(dfr))
-    stop("You must provide a name in the dataframe to fit by.")
-  
-  dfrs <- split(dfr, dfr[,group])
-  
-  fits <- lapply(dfrs, function(x)fitplc(x, ...))
-  class(fits) <- "manyplcfit"
-
-return(fits)
-}
-
-#'@export
-print.manyplcfit <- function(x,...){
-  
-  
-  coefs <- lapply(x, coef)
-  
-  cat("Object of class 'manyplcfit'\n")
-  cat("------------------------------\n\n")
-  cat("Parameter estimates and 95% confidence intervals:\n\n")
-  
-  for(i in 1:length(x)){
-    cat("Group: ",names(x)[i],"\n")
-    print(coefs[[i]])
-    cat("\n")
-  }
-  
-}
-
-
-#'@export
-coef.manyplcfit <- function(object, ...){
-  
-  x <- lapply(object,coef)
-  vf <- function(m)as.vector(t(m))
-  dfr <-  as.data.frame(do.call(rbind,lapply(x,vf)))
-  names(dfr) <- c("S","S_SE","S_lower","S_upper",
-                  "Px","Px_SE","P50_lower","P50_upper")
-  
-  return(dfr)
-}
-
-
-
-
 
 
