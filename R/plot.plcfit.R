@@ -1,9 +1,10 @@
-#'@rdname fitplc
-#'@export
-
-
-#'@rdname fitplc
-#'@export
+#' @param xlab,ylab Optionally, X and Y axis labels (if not provided, a default is used).
+#' @param ylim Optionally, Y-axis limits.
+#' @param pch Optionally, the plotting symbol (default = 19, filled circles)
+#' @param selines Logical. If TRUE (the default), plots confidence interval around Px with dotted lines.
+#' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
+#' @rdname fitplc
+#' @export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         selines=c("parametric","bootstrap"),

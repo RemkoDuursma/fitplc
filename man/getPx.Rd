@@ -6,6 +6,11 @@
 \usage{
 getPx(fit, x = 50)
 }
+\arguments{
+\item{fit}{Object returned by \code{\link{fitplc}}}
+
+\item{x}{The x in Px, that is, if P50 should be returned, x=50.}
+}
 \description{
 In cases where fitplc does not converge (as is common when x=88 or other large/small values), this
 function can be used to extract esimates of Px from a fitted object. See examples. Note that the CI is approximate, and is based on the bootstrap resampling performed by fitplc. This function only works when \code{bootci=TRUE} when the curve was fit, luckily this is the default behaviour (see also examples below).

@@ -6,5 +6,4 @@ Author: Remko Duursma
 Maintainer: Remko Duursma <remkoduursma@gmail.com>
 Description: Fits the weibull equation to percent loss conductivity (plc) curves, computes SE of parameter estimates and location of curve with bootstrap or parametric methods.
 License: GPL
-Depends: car
-Suggests: nlme
+Depends: nlme

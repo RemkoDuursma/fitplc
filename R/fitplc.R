@@ -22,7 +22,6 @@
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
-#' @param cex.text Character size for text annotation (i.e. Px in margin)
 #' @details If a variable with the name Weights is present in the dataframe, 
 #' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
 #' weighted non-linear regression. See the final example on how to use this.
@@ -82,13 +81,14 @@
 #' coef(pfit)
 #' 
 #' }
-#' 
+#' @importFrom nlme fixef
+#' @importFrom nlme nlme
+#' @importFrom nlme intervals
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
-                   Weights=NULL,
                    bootci=TRUE){
 
                    

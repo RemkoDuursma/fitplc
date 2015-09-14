@@ -8,7 +8,7 @@
 \usage{
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = "Weibull", startvalues = list(Px = 3, S = 20),
-  x = 50, Weights = NULL, bootci = TRUE)
+  x = 50, bootci = TRUE)
 
 fitplcs(dfr, group, ...)
 
@@ -37,6 +37,12 @@ fitplcs(dfr, group, ...)
 
 \item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
 
+\item{xlab,ylab}{Optionally, X and Y axis labels (if not provided, a default is used).}
+
+\item{ylim}{Optionally, Y-axis limits.}
+
+\item{pch}{Optionally, the plotting symbol (default = 19, filled circles)}
+
 \item{plotPx}{Logical (default TRUE), whether to plot a vertical line for the P50.}
 
 \item{plotci}{Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).}
@@ -44,6 +50,10 @@ fitplcs(dfr, group, ...)
 \item{plotdata}{Logical (default TRUE), whether to add the data to the plot.}
 
 \item{add}{Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.}
+
+\item{selines}{Logical. If TRUE (the default), plots confidence interval around Px with dotted lines.}
+
+\item{plotrandom}{Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
 
 \item{linecol}{The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).}
 
@@ -56,8 +66,6 @@ fitplcs(dfr, group, ...)
 \item{citype}{Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.}
 
 \item{what}{Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.}
-
-\item{cex.text}{Character size for text annotation (i.e. Px in margin)}
 
 \item{\dots}{Further parameters passed to \code{fitplc}.}
 }
