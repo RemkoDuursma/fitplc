@@ -113,7 +113,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     }
     
     abline(v=px, col=pxlinecol)
-    if(plotci)abline(v=px_ci, col=pxlinecol, lty=5)
+    abline(v=px_ci, col=pxlinecol, lty=5)
     mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
           line=0, col=pxlinecol, cex=pxcex)
   }
