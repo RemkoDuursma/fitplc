@@ -15,7 +15,7 @@ fitplcs(dfr, group, ...)
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
   add = FALSE, selines = c("parametric", "bootstrap"), plotrandom = FALSE,
-  linecol = "black", linecol2 = "blue", pxlinecol = "red",
+  linecol = "black", linecol2 = "blue", pxlinecol = "red", pxcex = 0.7,
   citype = c("polygon", "lines"), what = c("relk", "embol"), ...)
 }
 \arguments{
@@ -50,6 +50,8 @@ fitplcs(dfr, group, ...)
 \item{linecol2}{The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).}
 
 \item{pxlinecol}{The color of the lines indicating Px and its confidence interval}
+
+\item{pxcex}{Character size for the Px label above the Y-axis.}
 
 \item{citype}{Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.}
 

@@ -92,7 +92,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   if(plotrandom){
     for(i in 1:length(x$prednlme)){
-      with(x$prednlme[[i]], lines(x,y,type='l'))
+      with(x$prednlme[[i]], lines(x,y,type='l',col=linecol))
     }  
     with(x$prednlmefix, lines(x,y,type='l',lwd=2, col=linecol2))
   }
@@ -112,7 +112,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     }
     
     abline(v=px, col=pxlinecol)
-    abline(v=px_ci, col=pxlinecol, lty=5)
+    if(plotci)abline(v=px_ci, col=pxlinecol, lty=5)
     mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
           line=0, col=pxlinecol, cex=pxcex)
   }
