@@ -16,7 +16,9 @@
 #' @param plotci Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).
 #' @param plotdata Logical (default TRUE), whether to add the data to the plot.
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
-#' @param linecol the color of the line
+#' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
+#' @param linecol The color of the fitted line
+#' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
 #' @details If a variable with the name Weights is present in the dataframe, 
 #' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
@@ -247,11 +249,15 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         selines=c("parametric","bootstrap"),
                         plotrandom=FALSE,
-                        linecol="black", what=c("relk","embol"), ...){
+                        linecol="black", 
+                        pxlinecol="red",
+                        citype=c("polygon","lines"),
+                        what=c("relk","embol"), ...){
   
   
     selines <- match.arg(selines)
-  
+    citype <- match.arg(citype)
+    
     if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
       
     type <- ifelse(plotdata, 'p', 'n')
@@ -302,10 +308,22 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     }
     if(!plotrandom){
       if(x$bootci && plotci){
-        with(x$pred,{
-          lines(x, lwr, type='l', lty=5, col=linecol)
-          lines(x, upr, type='l', lty=5, col=linecol)
-        })      
+        if(citype == "lines"){
+          with(x$pred,{
+            lines(x, lwr, type='l', lty=5, col=linecol)
+            lines(x, upr, type='l', lty=5, col=linecol)
+          })
+        }
+        if(citype == "polygon"){
+          with(x$pred, addpoly(x,lwr,upr))
+          # replot points
+          if(plotdata){
+            with(x, {
+              points(data$P, data$Y, pch=pch, type=type,...)
+            })
+          }
+        }
+        
       }
       with(x$pred,{
         lines(x, pred, type='l', lty=1, col=linecol)
@@ -333,9 +351,9 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
         px_ci <- x$cinlme[2,]
       }
       
-      abline(v=px, col="red")
-      abline(v=px_ci, col="red", lty=5)
-      mtext(side=3, at=px, text=expression(Px), line=0, col="red", cex=0.7)
+      abline(v=px, col=pxlinecol)
+      abline(v=px_ci, col=pxlinecol, lty=5)
+      mtext(side=3, at=px, text=expression(Px), line=0, col=pxlinecol, cex=0.7)
     }
     
 }
