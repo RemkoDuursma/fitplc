@@ -1,13 +1,13 @@
 #' @param xlab,ylab Optionally, X and Y axis labels (if not provided, a default is used).
 #' @param ylim Optionally, Y-axis limits.
 #' @param pch Optionally, the plotting symbol (default = 19, filled circles)
-#' @param selines Logical. If TRUE (the default), plots confidence interval around Px with dotted lines.
+#' @param selines Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval).
 #' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
 #' @rdname fitplc
 #' @export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
-                        selines=c("parametric","bootstrap"),
+                        selines=c("parametric","bootstrap","none"),
                         plotrandom=FALSE,linecol="black",
                         linecol2="blue",
                         pxlinecol="red",
@@ -104,16 +104,19 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       
       if(selines == "bootstrap"){
         px_ci <- x$bootpars[2,2:3]
-      } else {
+      } 
+      if(selines == "parametric") {
         px_ci <- x$ci[2,]
       }
+      
     } else {
       px <- fixef(x$nlmefit)["PX"]
       px_ci <- x$cinlme[2,]
     }
     
     abline(v=px, col=pxlinecol)
-    abline(v=px_ci, col=pxlinecol, lty=5)
+    if(selines != "none")abline(v=px_ci, col=pxlinecol, lty=5)
+    
     mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
           line=0, col=pxlinecol, cex=pxcex)
   }

@@ -14,9 +14,10 @@ fitplcs(dfr, group, ...)
 
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
-  add = FALSE, selines = c("parametric", "bootstrap"), plotrandom = FALSE,
-  linecol = "black", linecol2 = "blue", pxlinecol = "red", pxcex = 0.7,
-  citype = c("polygon", "lines"), what = c("relk", "embol"), ...)
+  add = FALSE, selines = c("parametric", "bootstrap", "none"),
+  plotrandom = FALSE, linecol = "black", linecol2 = "blue",
+  pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
+  what = c("relk", "embol"), ...)
 }
 \arguments{
 \item{dfr}{A dataframe that contains water potential and plc data.}
