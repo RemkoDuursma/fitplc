@@ -3,10 +3,12 @@
 #' @param pch Optionally, the plotting symbol (default = 19, filled circles)
 #' @param selines Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval).
 #' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
+#' @param multiplier Multiply the scaled data (for plotting).
 #' @rdname fitplc
 #' @export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
+                        multiplier=1,
                         selines=c("parametric","bootstrap","none"),
                         plotrandom=FALSE,linecol="black",
                         linecol2="blue",
@@ -30,7 +32,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   if(what == "relk"){
     if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
     x$data$Y <- x$data$relK
-    if(is.null(ylim))ylim <- c(0,1)
+    if(is.null(ylim))ylim <- c(0,multiplier)
   }
   toEmbol <- function(k)100 - 100*k
   if(what == "embol"){
@@ -57,45 +59,45 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   if(!add){
     with(x, {
-      plot(data$P, data$Y, ylim=ylim, pch=pch,
+      plot(data$P, multiplier * data$Y, ylim=ylim, pch=pch,
            xlab=xlab,
            type=type,
            ylab=ylab, ...)
     })
   } else {
     with(x, {
-      points(data$P, data$Y, pch=pch, type=type,...)
+      points(data$P, multiplier * data$Y, pch=pch, type=type,...)
     })
   }
   if(!plotrandom){
     if(x$bootci && plotci){
       if(citype == "lines"){
         with(x$pred,{
-          lines(x, lwr, type='l', lty=5, col=linecol)
-          lines(x, upr, type='l', lty=5, col=linecol)
+          lines(x, multiplier * lwr, type='l', lty=5, col=linecol)
+          lines(x, multiplier * upr, type='l', lty=5, col=linecol)
         })
       }
       if(citype == "polygon"){
-        with(x$pred, addpoly(x,lwr,upr))
+        with(x$pred, addpoly(x,multiplier * lwr,multiplier * upr))
         # replot points
         if(plotdata){
           with(x, {
-            points(data$P, data$Y, pch=pch, type=type,...)
+            points(data$P, multiplier * data$Y, pch=pch, type=type,...)
           })
         }
       }
       
     }
     with(x$pred,{
-      lines(x, pred, type='l', lty=1, col=linecol)
+      lines(x, multiplier * pred, type='l', lty=1, col=linecol)
     })
   }
   
   if(plotrandom){
     for(i in 1:length(x$prednlme)){
-      with(x$prednlme[[i]], lines(x,y,type='l',col=linecol))
+      with(x$prednlme[[i]], lines(x,multiplier * y,type='l',col=linecol))
     }  
-    with(x$prednlmefix, lines(x,y,type='l',lwd=2, col=linecol2))
+    with(x$prednlmefix, lines(x,multiplier * y,type='l',lwd=2, col=linecol2))
   }
   
   if(plotPx){

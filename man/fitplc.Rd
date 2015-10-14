@@ -14,8 +14,8 @@ fitplcs(dfr, group, ...)
 
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
-  add = FALSE, selines = c("parametric", "bootstrap", "none"),
-  plotrandom = FALSE, linecol = "black", linecol2 = "blue",
+  add = FALSE, multiplier = 1, selines = c("parametric", "bootstrap",
+  "none"), plotrandom = FALSE, linecol = "black", linecol2 = "blue",
   pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
   what = c("relk", "embol"), ...)
 }
@@ -52,7 +52,9 @@ fitplcs(dfr, group, ...)
 
 \item{add}{Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.}
 
-\item{selines}{Logical. If TRUE (the default), plots confidence interval around Px with dotted lines.}
+\item{multiplier}{Multiply the scaled data (for plotting).}
+
+\item{selines}{Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval).}
 
 \item{plotrandom}{Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
 
