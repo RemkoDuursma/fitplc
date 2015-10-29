@@ -89,9 +89,19 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    random=NULL,
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
-                   bootci=TRUE){
+                   bootci=TRUE, ...){
 
                    
+  
+  # Find out if called from fitcond.
+  mc <- names(as.list(match.call()))
+  
+  condfit <- "calledfromfitcond" %in% mc
+  
+  # Get Kmax value
+  if(!"Kmax" %in% mc)Kmax <- 1
+  
+  
     # Get variables out of dataframe
     if(!varnames["PLC"] %in% names(dfr))
       stop("Check variable name for PLC!")
@@ -242,6 +252,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     }
       
     l$bootci <- bootci
+    l$condfit <- condfit
+    l$Kmax <- Kmax
     
     class(l) <- "plcfit"
     

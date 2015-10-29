@@ -8,13 +8,13 @@
 \usage{
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = "Weibull", startvalues = list(Px = 3, S = 20),
-  x = 50, bootci = TRUE)
+  x = 50, bootci = TRUE, ...)
 
 fitplcs(dfr, group, ...)
 
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
-  add = FALSE, multiplier = 1, selines = c("parametric", "bootstrap",
+  add = FALSE, multiplier = NULL, selines = c("parametric", "bootstrap",
   "none"), plotrandom = FALSE, linecol = "black", linecol2 = "blue",
   pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
   what = c("relk", "embol"), ...)

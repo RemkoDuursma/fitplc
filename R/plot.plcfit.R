@@ -8,7 +8,7 @@
 #' @export
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
-                        multiplier=1,
+                        multiplier=NULL,
                         selines=c("parametric","bootstrap","none"),
                         plotrandom=FALSE,linecol="black",
                         linecol2="blue",
@@ -18,6 +18,11 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         what=c("relk","embol"), ...){
   
   
+  
+  if(is.null(multiplier)){
+    multiplier <- x$Kmax
+  }
+  
   selines <- match.arg(selines)
   citype <- match.arg(citype)
   
@@ -25,6 +30,12 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   type <- ifelse(plotdata, 'p', 'n')
   what <- match.arg(what)
+  
+  # override
+  if(x$condfit){
+    
+    what <- "relk"
+  }
   
   if(plotrandom && !x$fitran)
     stop("To plot random effects predictions, refit with 'random' argument.")
