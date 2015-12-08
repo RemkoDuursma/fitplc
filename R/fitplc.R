@@ -1,10 +1,12 @@
 #' Fit PLC curves
-#' @description This function fits 'percent loss conductivity' (PLC) curves. At the moment, it 
-#' only fits the Weibull curve, as reparameterized by Ogle et al. (2009), and only returns
-#' P50 (although soon it will return P88 or whatever values).
-#' The function \code{fitplcs} can be used for batch fitting. See examples below for usage of \code{fitplc}
-#' or \code{fitplcs}.
-#' @param dfr A dataframe that contains water potential and plc data.
+#' @description This function fits the Weibull curve to measurements of stem or leaf conductivity 
+#' measurements at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc}
+#' function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic conductance data, for example),
+#' use the \code{fitcond} function. See Details and Examples for more information on how to use these functions. 
+#' 
+#' It is also possible to fit multiple curves at once, for example one for each species or site, with the \code{fitplcs} function.
+#' Note that \code{fitconds} is not yet available.
+#' @param dfr A dataframe that contains water potential and plc or conductivity/conductance data.
 #' @param varnames A vector specifying the names of the PLC and water potential data (WP).
 #' @param weights A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).
 #' @param random Variable that specified random effects (unquoted; must be present in dfr).

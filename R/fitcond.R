@@ -1,6 +1,5 @@
 #' @export
 #' @rdname fitplc
-#' Fit hydraulic conductance values. This renormalizes to first estimate PLC, then calls fitplc.
 fitcond <- function(dfr, varnames = c(K="K", WP="MPa"), 
                     Kmax=NULL,
                     WP_Kmax=NULL, ...){
@@ -25,7 +24,7 @@ fitcond <- function(dfr, varnames = c(K="K", WP="MPa"),
   }
       
   # Now calculate PLC
-  dfr$plc <- 100 - K/Kmax
+  dfr$plc <- 100 * (1 - K/Kmax)
   
   # Now do fit
   f <- fitplc(dfr, varnames=c(PLC = "plc", WP = varnames[["WP"]]), 

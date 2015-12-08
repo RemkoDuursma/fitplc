@@ -33,7 +33,6 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   # override
   if(x$condfit){
-    
     what <- "relk"
   }
   
@@ -41,10 +40,18 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     stop("To plot random effects predictions, refit with 'random' argument.")
   
   if(what == "relk"){
-    if(is.null(ylab))ylab <- "Relative conductivity (0 - 1)"
+    if(is.null(ylab)){
+      if(!x$condfit){
+        ylab <- "Relative conductivity (0 - 1)"
+      } else {
+        ylab <- "Conductivity / conductance (in units provided)"
+      }
+    }
+      
     x$data$Y <- x$data$relK
-    if(is.null(ylim))ylim <- c(0,multiplier)
+    if(is.null(ylim))ylim <- c(0,multiplier*max(x$data$Y))
   }
+  
   toEmbol <- function(k)100 - 100*k
   if(what == "embol"){
     if(is.null(ylab))ylab <- "% Embolism"
