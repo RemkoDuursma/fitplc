@@ -24,6 +24,7 @@
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
+#' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
 #' @details If a variable with the name Weights is present in the dataframe, 
 #' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
 #' weighted non-linear regression. See the final example on how to use this.
@@ -91,7 +92,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    random=NULL,
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
-                   bootci=TRUE, ...){
+                   bootci=TRUE,
+                   quiet=FALSE,
+                   ...){
 
                    
   
@@ -121,7 +124,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       fitran <- TRUE
       if(bootci){
         bootci <- FALSE
-        message("Not performing bootstrap when random effects present.")
+        if(!quiet)message("Not performing bootstrap when random effects present.")
       }
     } else {
       fitran <- FALSE
@@ -155,7 +158,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     
     # fit
     Data$X <- x
-    message("Fitting nls ...", appendLF=FALSE)
+    if(!quiet)message("Fitting nls ...", appendLF=FALSE)
 
     # Weighted NLS
     if(!is.null(W)){
@@ -185,14 +188,14 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                         data=Data)
       }
     }
-    message("done.")
+    if(!quiet)message("done.")
     
     # bootstrap
     if(bootci){
-      message("Fitting to bootstrap replicates ...", appendLF=FALSE)
+      if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
       p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
                        startList=list(SX=Sh, PX=pxstart), weights=W)
-      message("done.")
+      if(!quiet)message("done.")
     } else {
       p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
                        startList=list(SX=Sh, PX=pxstart), weights=W)

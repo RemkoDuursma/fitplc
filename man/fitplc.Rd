@@ -14,7 +14,7 @@ fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
 
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = "Weibull", startvalues = list(Px = 3, S = 20),
-  x = 50, bootci = TRUE, ...)
+  x = 50, bootci = TRUE, quiet = FALSE, ...)
 
 fitplcs(dfr, group, ...)
 
@@ -27,8 +27,9 @@ fitconds(dfr, group, ...)
   pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
   what = c("relk", "embol"), ...)
 
-\method{plot}{manyplcfit}(x, onepanel = FALSE, linecol = NULL, pch = 19,
-  legend = TRUE, legendwhere = "topright", ...)
+\method{plot}{manyplcfit}(x, what = c("relk", "embol"), onepanel = FALSE,
+  linecol = NULL, pch = 19, legend = TRUE, legendwhere = "topright",
+  ...)
 }
 \arguments{
 \item{dfr}{A dataframe that contains water potential and plc or conductivity/conductance data.}
@@ -46,6 +47,8 @@ fitconds(dfr, group, ...)
 \item{x}{A fitted curve returned by \code{fitplc}}
 
 \item{bootci}{If TRUE, also computes the bootstrap confidence interval.}
+
+\item{quiet}{Logical (default FALSE), if TRUE, don't print any messages.}
 
 \item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
 

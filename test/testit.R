@@ -69,24 +69,25 @@ windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
 for(i in 1:3)plot(stemrosfits[[i]], xlim=c(0,7), main=names(stemrosfits)[i])
 
+# plot 1
+plot(stemrosfits, onepanel=TRUE, plotPx=FALSE, plotdata=TRUE, plotci=FALSE, pch=c(15,19,1))
 
-# only curves:
-windows()
-par(mfrow=c(1,1))
-plot(stemrosfits[[1]], plotdata=F, plotPx=F, linecol="blue")
-plot(stemrosfits[[2]], plotdata=F, plotPx=F, add=T, linecol="red")
-plot(stemrosfits[[3]], plotdata=F, plotPx=F, add=T, linecol="forestgreen")
-legend("topright", names(stemrosfits), fill=c("blue","red","forestgreen"))
+# plot 2
+plot(stemrosfits, onepanel=TRUE, plotPx=FALSE, plotdata=FALSE, 
+     legendwhere="topleft",
+     plotci=TRUE, what="embol")
 
 
 # Stemvul
 stemvul <- read.csv("test/stemvul-points.csv", sep=";")
 f <- fitplcs(stemvul, "Species", bootci=TRUE)
 
+# quiet
+g <- fitplcs(stemvul, "Species", bootci=FALSE, quiet=TRUE)
+
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
-for(i in 1:3)plot(f[[i]], xlim=c(0,7), main=names(f)[i])
-dev.copy2pdf(file="output/stemvulfits.pdf")
+plot(f, xlim=c(0,7), linecol="black") #, main=names(f)[i])
 
 
 # leafvul
@@ -94,8 +95,7 @@ leafvul <- read.csv("test/leafvul-points.csv", sep=";")
 leafvulfits <- fitplcs(leafvul, "Species", bootci=TRUE)
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
-for(i in 1:3)plot(leafvulfits[[i]], xlim=c(0,7), main=names(f)[i])
-dev.copy2pdf(file="output/leafvulfits.pdf")
+plot(leafvulfits, xlim=c(0,7))
 
 # usleafvul
 usleafvul <- read.csv("test/usleafvul-points.csv", sep=";")
@@ -103,8 +103,10 @@ f <- fitplcs(usleafvul, "Species", bootci=TRUE,
              varnames=c(PLC="CumulPercent", WP="MPa"))
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
-for(i in 1:3)plot(f[[i]], xlim=c(0,7), main=names(f)[i])
-dev.copy2pdf(file="output/usleafvulfits.pdf")
+plot(f, xlim=c(0,7), main=names(f)[i])
+
+
+plot(f, onepanel=TRUE, xlim=c(0,3), selines="none", linecol=c("#0000FFFF","#13F2FFFF","#FF3300FF"))
 
 
 # usstemvul
@@ -113,8 +115,7 @@ f <- fitplcs(usstemvul, "Species", bootci=TRUE,
              varnames=c(PLC="CumulPercent", WP="MPa"))
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
-for(i in 1:3)plot(f[[i]], xlim=c(0,7), main=names(f)[i])
-dev.copy2pdf(file="output/usstemvulfits.pdf")
+plot(f, xlim=c(0,7))
 
 
 

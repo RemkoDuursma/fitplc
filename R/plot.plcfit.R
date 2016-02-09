@@ -149,25 +149,30 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 #'@param legend Logical (default TRUE), whether to include a simple legend when plotting multiple fits
 #'@param legendwhere As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
 #'@rdname fitplc
-plot.manyplcfit <- function(x, onepanel=FALSE, linecol=NULL, 
-                            pch=19,
+plot.manyplcfit <- function(x, what=c("relk","embol"), 
+                            onepanel=FALSE, linecol=NULL, 
+                            pch=19, 
                             legend=TRUE, legendwhere="topright", ...){
   
+  what <- match.arg(what)
   np <- length(x)
-  if(is.null(linecol))linecol <- rainbow(np)
+  
   if(length(pch) < np)pch <- rep(pch,np)
   
   if(!onepanel){
-    for(i in 1:np)plot(x[[i]], linecol=linecol[i], pch=pch[i], ...)
+    if(is.null(linecol) | length(linecol) < np)linecol <- rep("black",np)
+    for(i in 1:np)plot(x[[i]], linecol=linecol[i], pch=pch[i], what=what, ...)
   } else {
-    plot(x[[1]], pch=pch[1], ...)
+    if(is.null(linecol))linecol <- rainbow(np)
+    plot(x[[1]], pch=pch[1], what=what,...)
     if(np > 1){
       for(i in 2:np){
-        plot(x[[i]], add=TRUE, linecol=linecol[i], pch=pch[i],...)
+        plot(x[[i]], add=TRUE, linecol=linecol[i], pch=pch[i], what=what, ...)
       }
     }
     # If plotting lines, plot them again to make sure they are on top
     for(i in 1:np)plot(x[[i]], add=TRUE, linecol=linecol[i], 
+                       what=what,
                        plotPx=FALSE, 
                        plotdata=FALSE, plotci=FALSE)
     if(legend){
