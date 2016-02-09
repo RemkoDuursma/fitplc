@@ -2,10 +2,11 @@
 % Please edit documentation in R/fitcond.R, R/fitplc.R, R/fitplcs.R, R/plot.plcfit.R
 \name{fitcond}
 \alias{fitcond}
+\alias{fitconds}
 \alias{fitplc}
 \alias{fitplcs}
 \alias{plot.plcfit}
-\title{Fit PLC curves}
+\title{Fit a PLC curve}
 \usage{
 fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
   WP_Kmax = NULL, ...)
@@ -15,6 +16,8 @@ fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   x = 50, bootci = TRUE, ...)
 
 fitplcs(dfr, group, ...)
+
+fitconds(dfr, group, ...)
 
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
@@ -82,8 +85,8 @@ measurements at various water potentials. If measurements are organized as 'perc
 function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic conductance data, for example),
 use the \code{fitcond} function. See Details and Examples for more information on how to use these functions. 
 
-It is also possible to fit multiple curves at once, for example one for each species or site, with the \code{fitplcs} function.
-Note that \code{fitconds} is not yet available.
+It is also possible to fit multiple curves at once, for example one for each species or site, 
+with the \code{fitplcs} and \code{fitconds} functions.
 }
 \details{
 If a variable with the name Weights is present in the dataframe, 

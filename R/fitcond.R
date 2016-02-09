@@ -27,8 +27,9 @@ fitcond <- function(dfr, varnames = c(K="K", WP="MPa"),
   dfr$plc <- 100 * (1 - K/Kmax)
   
   # Now do fit
+  KmaxVal <- Kmax
   f <- fitplc(dfr, varnames=c(PLC = "plc", WP = varnames[["WP"]]), 
-              calledfromfitcond=TRUE, Kmax=Kmax,
+              calledfromfitcond=TRUE, Kmax=KmaxVal,
               ...)
   
 return(f)

@@ -95,15 +95,18 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
 
                    
   
-  # Find out if called from fitcond.
-  mc <- names(as.list(match.call()))
-  
-  condfit <- "calledfromfitcond" %in% mc
-  
-  # Get Kmax value
-  if(!"Kmax" %in% mc)Kmax <- 1
-  
-  
+    # Find out if called from fitcond.
+    mc <- names(as.list(match.call()))
+    
+    condfit <- "calledfromfitcond" %in% mc
+    
+    # Get Kmax value
+    if(!"Kmax" %in% mc){
+      Kmax <- 1
+    } else {
+      Kmax <- list(...)$Kmax
+    }
+    
     # Get variables out of dataframe
     if(!varnames["PLC"] %in% names(dfr))
       stop("Check variable name for PLC!")
