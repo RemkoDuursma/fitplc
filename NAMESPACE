@@ -2,6 +2,7 @@
 
 S3method(coef,manyplcfit)
 S3method(coef,plcfit)
+S3method(plot,manyplcfit)
 S3method(plot,plcfit)
 S3method(print,manyplcfit)
 S3method(print,plcfit)

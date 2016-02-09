@@ -5,6 +5,7 @@
 \alias{fitconds}
 \alias{fitplc}
 \alias{fitplcs}
+\alias{plot.manyplcfit}
 \alias{plot.plcfit}
 \title{Fit a PLC curve}
 \usage{
@@ -25,6 +26,9 @@ fitconds(dfr, group, ...)
   "none"), plotrandom = FALSE, linecol = "black", linecol2 = "blue",
   pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
   what = c("relk", "embol"), ...)
+
+\method{plot}{manyplcfit}(x, onepanel = FALSE, linecol = NULL, pch = 19,
+  legend = TRUE, legendwhere = "topright", ...)
 }
 \arguments{
 \item{dfr}{A dataframe that contains water potential and plc or conductivity/conductance data.}
@@ -76,6 +80,12 @@ fitconds(dfr, group, ...)
 \item{citype}{Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.}
 
 \item{what}{Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.}
+
+\item{onepanel}{For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)}
+
+\item{legend}{Logical (default TRUE), whether to include a simple legend when plotting multiple fits}
+
+\item{legendwhere}{As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)}
 
 \item{\dots}{Further parameters passed to \code{fitplc}.}
 }

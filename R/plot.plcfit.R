@@ -142,3 +142,44 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   }
   
 }
+
+
+#'@export
+#'@param onepanel For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)
+#'@param legend Logical (default TRUE), whether to include a simple legend when plotting multiple fits
+#'@param legendwhere As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
+#'@rdname fitplc
+plot.manyplcfit <- function(x, onepanel=FALSE, linecol=NULL, 
+                            pch=19,
+                            legend=TRUE, legendwhere="topright", ...){
+  
+  np <- length(x)
+  if(is.null(linecol))linecol <- rainbow(np)
+  if(length(pch) < np)pch <- rep(pch,np)
+  
+  if(!onepanel){
+    for(i in 1:np)plot(x[[i]], linecol=linecol[i], pch=pch[i], ...)
+  } else {
+    plot(x[[1]], pch=pch[1], ...)
+    if(np > 1){
+      for(i in 2:np){
+        plot(x[[i]], add=TRUE, linecol=linecol[i], pch=pch[i],...)
+      }
+    }
+    # If plotting lines, plot them again to make sure they are on top
+    for(i in 1:np)plot(x[[i]], add=TRUE, linecol=linecol[i], 
+                       plotPx=FALSE, 
+                       plotdata=FALSE, plotci=FALSE)
+    if(legend){
+      legend(legendwhere, names(x), lty=1, col=linecol)
+    }
+    
+  }
+}
+
+
+
+
+
+
+
