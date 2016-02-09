@@ -83,6 +83,11 @@
 #' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"), weights=Weights)
 #' coef(pfit)
 #' 
+#' # 4. Fit the Weibull curve directly to the raw conductance data. Use this option when you don't want to transform your data to PLC. You have two options: specify the 'maximum' conductance yourself (and provide Kmax), or set the threshold water potential (Kmax_WP), which is then used to calculate Kmax (from the average of the conductance values where WP > Kmax_WP). 
+#' kfit1 <- fitcond(dfr, varnames=c(PLC="PLC", WP="MPa"), Kmax=4)
+#' kfit2 <- fitcond(dfr, varnames=c(PLC="PLC", WP="MPa"), Kmax_WP = -0.3)
+#' # Use plot(kfit1) as for fitplc, as well as coef() etc.
+#' 
 #' }
 #' @importFrom nlme fixef
 #' @importFrom nlme nlme
