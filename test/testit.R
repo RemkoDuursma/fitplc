@@ -8,18 +8,26 @@ stemros <- read.csv("test/stemvul-ros.csv")
 stemros$Cond <- 5.4 * (1 - stemros$PLC/100)
 
 f <- fitcond(stemros, varnames=c(K="Cond", WP="MPa"), WP_Kmax=-0.3)
+g <- fitplc(stemros, varnames=c(PLC="PLC", WP="MPa"))
 
+h <- fitcond(stemros, varnames=c(K="Cond", WP="MPa"), WP_Kmax=-0.3, random = Branch)
 
+windows()
+par(mfrow=c(2,2))
+plot(f)
+plot(g, what="embol")
+plot(g, what="relk")
+plot(h, plotrandom=TRUE)
 
 
 
 # Stem at ROS
 stemros <- read.csv("test/stemvul-ros.csv")
 
-# fit one, no bootCI
-dfr <- subset(stemros, Species == "EuTe")
-eutefit <- fitplc(dfr, bootci=FALSE)
-
+# fit one, change starting values
+dfr <- subset(stemros, Species == "CaCu")
+cacufit <- fitplc(dfr, bootci=FALSE, startvalues=list(Px=1.5, S=10))
+plot(cacufit, what="embol")
 
 
 # 
@@ -38,23 +46,37 @@ fit3 <- fitplc(dfr, x=50)
 getPx(fit3, 12)
 
 # fit all
-stemrosfits <- fitplcs(stemros, "Species", bootci=TRUE)
+# no bootstrap
+stemrosfits <- fitplcs(stemros, "Species", bootci=FALSE, startvalues=list(Px=1.5, S=10))
 stemrosfits
+coef(stemrosfits)
+summary(stemrosfits)
+summary(stemrosfits$CaCu)
+
+# with bootstrap
+stemrosfits2 <- fitplcs(stemros, "Species", bootci=TRUE, startvalues=list(Px=1.5, S=10))
+stemrosfits2
+coef(stemrosfits2)
+summary(stemrosfits2)
+summary(stemrosfits2$CaCu)
+
+# plot
+windows(10,8)
+par(mfrow=c(3,1), mar=c(4,4,2,2))
+for(i in 1:3)plot(stemrosfits2[[i]], xlim=c(0,7), main=names(stemrosfits2)[i])
 
 windows(10,8)
 par(mfrow=c(3,1), mar=c(4,4,2,2))
 for(i in 1:3)plot(stemrosfits[[i]], xlim=c(0,7), main=names(stemrosfits)[i])
-dev.copy2pdf(file="output/stemrosfits.pdf")
 
 
 # only curves:
 windows()
 par(mfrow=c(1,1))
-plot(stemrosfits[[1]], plotdata=F, plotP50=F, linecol="blue")
-plot(stemrosfits[[2]], plotdata=F, plotP50=F, add=T, linecol="red")
-plot(stemrosfits[[3]], plotdata=F, plotP50=F, add=T, linecol="forestgreen")
+plot(stemrosfits[[1]], plotdata=F, plotPx=F, linecol="blue")
+plot(stemrosfits[[2]], plotdata=F, plotPx=F, add=T, linecol="red")
+plot(stemrosfits[[3]], plotdata=F, plotPx=F, add=T, linecol="forestgreen")
 legend("topright", names(stemrosfits), fill=c("blue","red","forestgreen"))
-dev.copy2pdf(file="output/stemrosfits_curvesonly.pdf")
 
 
 # Stemvul
