@@ -26,6 +26,8 @@ fitconds <- function(dfr, group, ...){
   dfrs <- split(dfr, dfr[,group])
   
   fits <- lapply(dfrs, function(x)fitcond(x, ...))
+  class(fits) <- "manyplcfit"
+  
   
   return(fits)
   

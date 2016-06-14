@@ -6,9 +6,11 @@ fitcond <- function(dfr, varnames = c(K="K", WP="MPa"),
 
   
   if(is.null(WP_Kmax) && is.null(Kmax)){
-    stop("Provide either the maximum hydraulic conductance (Kmax), or the water potential threshold (WP_Kmax) (see help file).")
+    stop("Provide either the maximum hydraulic conductance (Kmax), or the water potential threshold (WP_Kmax) (see help file).", .call=FALSE)
   }
 
+  if(is.list(varnames))varnames <- unlist(varnames)
+  
   # Get variables out of dataframe
   if(!varnames["K"] %in% names(dfr))
     stop("Check variable name for K!")

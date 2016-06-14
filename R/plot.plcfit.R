@@ -1,11 +1,25 @@
+#' Plot a fitted vulnerability curve
+#' @description Standard plots of fitted curves (objects returned by \code{\link{fitplc}}, \code{\link{fitplcs}}, \code{\link{fitcond}} or \code{\link{fitconds}}), with plenty of options for customization.
 #' @param xlab,ylab Optionally, X and Y axis labels (if not provided, a default is used).
 #' @param ylim Optionally, Y-axis limits.
 #' @param pch Optionally, the plotting symbol (default = 19, filled circles)
 #' @param selines Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval).
 #' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
 #' @param multiplier Multiply the scaled data (for plotting).
-#' @rdname fitplc
+#' @param x A fitted curve returned by \code{fitplc}
+#' @param plotPx Logical (default TRUE), whether to plot a vertical line for the P50.
+#' @param plotci Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).
+#' @param plotdata Logical (default TRUE), whether to add the data to the plot.
+#' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
+#' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
+#' @param linecol The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
+#' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
+#' @param plotrandom If TRUE, and the model was fit with a random effect, plots the random effects predictions.
+#' @param pxlinecol The color of the lines indicating Px and its confidence interval 
+#' @param pxcex Character size for the Px label above the Y-axis.
+#' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
 #' @export
+#' @rdname plot.plcfit
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         multiplier=NULL,
@@ -148,7 +162,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 #'@param onepanel For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)
 #'@param legend Logical (default TRUE), whether to include a simple legend when plotting multiple fits
 #'@param legendwhere As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
-#'@rdname fitplc
+#'@rdname plot.plcfit
 plot.manyplcfit <- function(x, what=c("relk","embol"), 
                             onepanel=FALSE, linecol=NULL, 
                             pch=19, 
@@ -171,10 +185,12 @@ plot.manyplcfit <- function(x, what=c("relk","embol"),
       }
     }
     # If plotting lines, plot them again to make sure they are on top
-    for(i in 1:np)plot(x[[i]], add=TRUE, linecol=linecol[i], 
+    for(i in 1:np){
+      plot(x[[i]], add=TRUE, linecol=linecol[i], 
                        what=what,
                        plotPx=FALSE, 
                        plotdata=FALSE, plotci=FALSE)
+    }
     if(legend){
       legend(legendwhere, names(x), lty=1, col=linecol)
     }

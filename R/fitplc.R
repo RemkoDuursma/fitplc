@@ -1,11 +1,11 @@
 #' Fit a PLC curve
 #' @description This function fits the Weibull curve to measurements of stem or leaf conductivity 
-#' measurements at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc}
-#' function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic conductance data, for example),
-#' use the \code{fitcond} function. See Details and Examples for more information on how to use these functions. 
+#' measurements at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc} function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic  conductance data, for example), use the \code{fitcond} function. See Details and Examples for more information on how to use these functions. 
 #' 
 #' It is also possible to fit multiple curves at once, for example one for each species or site, 
 #' with the \code{fitplcs} and \code{fitconds} functions.
+#' 
+#' See \code{\link{plot.plcfit}} for documentation on plotting methods for the fitted objects, and the examples below.
 #' @param dfr A dataframe that contains water potential and plc or conductivity/conductance data.
 #' @param varnames A vector specifying the names of the PLC and water potential data (WP).
 #' @param weights A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).
@@ -13,18 +13,6 @@
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
-#' @param x A fitted curve returned by \code{fitplc}
-#' @param plotPx Logical (default TRUE), whether to plot a vertical line for the P50.
-#' @param plotci Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).
-#' @param plotdata Logical (default TRUE), whether to add the data to the plot.
-#' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
-#' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
-#' @param linecol The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
-#' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
-#' @param plotrandom If TRUE, and the model was fit with a random effect, plots the random effects predictions.
-#' @param pxlinecol The color of the lines indicating Px and its confidence interval 
-#' @param pxcex Character size for the Px label above the Y-axis.
-#' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
 #' @details If a variable with the name Weights is present in the dataframe, 
 #' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
@@ -33,7 +21,6 @@
 #' If the \code{random} argument specifies a factor variable present in the dataframe, random effects will 
 #' be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects.
 #'
-#' 
 #' A plot method is available for the fitted object, see examples on how to use it.
 #' @export
 #' @importFrom nlme fixef
@@ -57,7 +44,7 @@
 #' pfit
 #' 
 #' # Make a standard plot. The default plot is 'relative conductivity',
-#' # (which is 1.0 where PLC = 0).
+#' # (which is 1.0 where PLC = 0). For plotting options, see ?plot.plcfit
 #' plot(pfit)
 #' 
 #' # Or plot the percent embolism
@@ -91,6 +78,10 @@
 #' # Option 2 : calculate maximum cond. from data where water potential : -0.3 MPa.
 #' kfit2 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), WP_Kmax = -0.3)
 #' # Use plot(kfit1) as for fitplc, as well as coef() etc.
+#' 
+#' # Fit multiple conductivity curves at once (bootstrap omitted for speed).
+#' kfits3 <- fitconds(stemvul, "Species", varnames=list(K="Cond", WP="MPa"), WP_Kmax=-0.3, boot=FALSE)
+#' plot(kfits3, onepanel=T, ylim=c(0,12), selines="none")
 #' 
 #' # 5. Random effects.
 #' # This example takes into account the fact that the individual data points for a species are not 
