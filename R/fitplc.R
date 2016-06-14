@@ -21,6 +21,7 @@
 #' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
 #' @param linecol The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
+#' @param plotrandom If TRUE, and the model was fit with a random effect, plots the random effects predictions.
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
@@ -35,20 +36,22 @@
 #' 
 #' A plot method is available for the fitted object, see examples on how to use it.
 #' @export
+#' @importFrom nlme fixef
+#' @importFrom nlme nlme
+#' @importFrom nlme intervals
+
 #' @rdname fitplc
 #' @examples
-#' \dontrun{
-#' 
-#' # First read a dataframe (in this example, from the folder 'test')
-#' dfr <- read.csv("test/stemvul-ros.csv")
-#' 
+#'
+#' # We use the built-in example dataset 'stemvul' in the examples below. See ?stemvul.
+#'   
 #' # 1. Fit one species (or fit all, see next example)
-#' dfr_eute <- subset(dfr, Species =="EuTe")
+#' dfr1 <- subset(stemvul, Species =="dpap")
 #' 
 #' # Make fit. Store results in object 'pfit'
 #' # 'varnames' specifies the names of the 'PLC' variable in the dataframe,
 #' # and water potential (WP). 
-#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"))
+#' pfit <- fitplc(dfr1, varnames=c(PLC="PLC", WP="MPa"))
 #' 
 #' # Look at fit
 #' pfit
@@ -65,33 +68,37 @@
 #' 
 #' # 2. Fit all species in the dataset.
 #' # Here we also set the starting values (which is sometimes needed).
-#' allfit <- fitplcs(dfr, "Species", varnames=c(PLC="PLC", WP="MPa"),
-#' startvalues=list(Px=4, Sx=10))
+#' allfit <- fitplcs(stemvul, "Species", varnames=c(PLC="PLC", WP="MPa"))
 #' 
-#' # Make three plots
-#' # windows(10,8) # optional : open up a window and split.
-#' # par(mfrow=c(3,1), mar=c(4,4,2,2))
-#' for(i in 1:3)plot(allfit[[i]], xlim=c(0,7), main=names(allfit)[i])
-#' 
+#' 3. Plot the fits.
+#' plot(allfit, onepanel=TRUE, plotci=FALSE, selines="none", pxlinecol="dimgrey")
+#'
 #' # Coefficients show the estimates and 95% CI (given by 'lower' and 'upper')
 #' # Based on the CI's, species differences can be decided.
 #' coef(allfit)
 #' 
 #' # 3. Specify Weights. The default variable name is Weights, if present in the dataset
 #' # it will be used for weighted non-linear regression
-#' dfr_eute$Weights <- abs(50-dfr_eute$PLC)^1.2
-#' pfit <- fitplc(dfr_eute, varnames=c(PLC="PLC", WP="MPa"), weights=Weights)
+#' dfr1$Weights <- abs(50-dfr1$PLC)^1.2
+#' pfit <- fitplc(dfr1, varnames=c(PLC="PLC", WP="MPa"), weights=Weights)
 #' coef(pfit)
 #' 
 #' # 4. Fit the Weibull curve directly to the raw conductance data. Use this option when you don't want to transform your data to PLC. You have two options: specify the 'maximum' conductance yourself (and provide Kmax), or set the threshold water potential (Kmax_WP), which is then used to calculate Kmax (from the average of the conductance values where WP > Kmax_WP). 
-#' kfit1 <- fitcond(dfr, varnames=c(PLC="PLC", WP="MPa"), Kmax=4)
-#' kfit2 <- fitcond(dfr, varnames=c(PLC="PLC", WP="MPa"), Kmax_WP = -0.3)
+#' 
+#' # Option 1 : maximum conductivity (i.e. at full hydration) is known, and used as input.
+#' kfit1 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), Kmax=7.2)
+#'
+#' # Option 2 : calculate maximum cond. from data where water potential : -0.3 MPa.
+#' kfit2 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), WP_Kmax = -0.3)
 #' # Use plot(kfit1) as for fitplc, as well as coef() etc.
 #' 
-#' }
-#' @importFrom nlme fixef
-#' @importFrom nlme nlme
-#' @importFrom nlme intervals
+#' # 5. Random effects.
+#' # This example takes into account the fact that the individual data points for a species are not 
+#' # independent, but rather clustered by branch. 
+#' fitr <- fitplc(dfr1, random=Branch)
+#' 
+#' # Visualize the random effects.
+#' plot(fitr, plotrandom=TRUE)
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
