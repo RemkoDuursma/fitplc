@@ -13,8 +13,8 @@
   what = c("relk", "embol"), ...)
 
 \method{plot}{manyplcfit}(x, what = c("relk", "embol"), onepanel = FALSE,
-  linecol = NULL, pch = 19, legend = TRUE, legendwhere = "topright",
-  ...)
+  linecol = NULL, pointcol = NULL, pch = 19, legend = TRUE,
+  legendwhere = "topright", ...)
 }
 \arguments{
 \item{x}{A fitted curve returned by \code{fitplc}}
@@ -39,7 +39,7 @@
 
 \item{plotrandom}{Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
 
-\item{linecol}{The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).}
+\item{linecol}{The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).}
 
 \item{linecol2}{The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).}
 
@@ -52,6 +52,8 @@
 \item{what}{Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.}
 
 \item{onepanel}{For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)}
+
+\item{pointcol}{The color(s) of the data points.}
 
 \item{legend}{Logical (default TRUE), whether to include a simple legend when plotting multiple fits}
 

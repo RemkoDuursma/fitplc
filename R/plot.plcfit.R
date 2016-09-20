@@ -12,7 +12,8 @@
 #' @param plotdata Logical (default TRUE), whether to add the data to the plot.
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
 #' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
-#' @param linecol The color of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
+#' @param linecol The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
+#' @param pointcol The color(s) of the data points.
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
 #' @param plotrandom If TRUE, and the model was fit with a random effect, plots the random effects predictions.
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
@@ -165,6 +166,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 #'@rdname plot.plcfit
 plot.manyplcfit <- function(x, what=c("relk","embol"), 
                             onepanel=FALSE, linecol=NULL, 
+                            pointcol=NULL,
                             pch=19, 
                             legend=TRUE, legendwhere="topright", ...){
   
@@ -175,13 +177,17 @@ plot.manyplcfit <- function(x, what=c("relk","embol"),
   
   if(!onepanel){
     if(is.null(linecol) | length(linecol) < np)linecol <- rep("black",np)
+    if(is.null(pointcol) | length(pointcol) < np)pointcol <- rep("black",np)
+    
     for(i in 1:np)plot(x[[i]], linecol=linecol[i], pch=pch[i], what=what, ...)
   } else {
     if(is.null(linecol))linecol <- rainbow(np)
-    plot(x[[1]], pch=pch[1], what=what,...)
+    if(is.null(pointcol))pointcol <- rainbow(np)
+    
+    plot(x[[1]], pch=pch[1], col=pointcol[1], what=what,...)
     if(np > 1){
       for(i in 2:np){
-        plot(x[[i]], add=TRUE, linecol=linecol[i], pch=pch[i], what=what, ...)
+        plot(x[[i]], add=TRUE, linecol=linecol[i], col=pointcol[i], pch=pch[i], what=what, ...)
       }
     }
     # If plotting lines, plot them again to make sure they are on top
