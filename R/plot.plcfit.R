@@ -15,12 +15,14 @@
 #' @param linecol The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
 #' @param pointcol The color(s) of the data points.
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
-#' @param plotrandom If TRUE, and the model was fit with a random effect, plots the random effects predictions.
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
+#' @param \dots Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})
 #' @export
 #' @rdname plot.plcfit
+#' @importFrom graphics abline mtext plot
+#' @importFrom stats approx coef confint
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         multiplier=NULL,
@@ -164,6 +166,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 #'@param legend Logical (default TRUE), whether to include a simple legend when plotting multiple fits
 #'@param legendwhere As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
 #'@rdname plot.plcfit
+#'@importFrom grDevices rainbow
 plot.manyplcfit <- function(x, what=c("relk","embol"), 
                             onepanel=FALSE, linecol=NULL, 
                             pointcol=NULL,

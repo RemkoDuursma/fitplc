@@ -1,4 +1,5 @@
 
+#' @importFrom grDevices rgb
 alpha <- function (colour, alpha = NA) {
   col <- col2rgb(colour, TRUE)/255
   if (length(colour) != length(alpha)) {
@@ -18,7 +19,8 @@ alpha <- function (colour, alpha = NA) {
   new_col
 }
 
-
+#' @importFrom graphics polygon
+#' @importFrom grDevices col2rgb
 addpoly <- function(x,y1,y2,col=alpha("lightgrey",0.8),...){
   ii <- order(x)
   y1 <- y1[ii]

@@ -59,7 +59,7 @@
 
 \item{legendwhere}{As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)}
 
-\item{plotrandom}{If TRUE, and the model was fit with a random effect, plots the random effects predictions.}
+\item{\dots}{Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})}
 }
 \description{
 Standard plots of fitted curves (objects returned by \code{\link{fitplc}}, \code{\link{fitplcs}}, \code{\link{fitcond}} or \code{\link{fitconds}}), with plenty of options for customization.

@@ -1,4 +1,9 @@
 # This works for this object only
+#' @importFrom stats residuals
+#' @importFrom stats update
+#' @importFrom stats nls
+#' @importFrom stats predict
+#' @importFrom stats quantile
 bootfit <- function(fit, n=999, maxnbad=50, Data, startList, weights=NULL){
   
 

@@ -23,6 +23,10 @@ fitconds(dfr, group, ...)
 
 \item{varnames}{A vector specifying the names of the PLC and water potential data (WP).}
 
+\item{Kmax}{Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.}
+
+\item{WP_Kmax}{Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.}
+
 \item{weights}{A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).}
 
 \item{random}{Variable that specified random effects (unquoted; must be present in dfr).}
@@ -30,6 +34,8 @@ fitconds(dfr, group, ...)
 \item{model}{At the moment, only 'Weibull' is allowed.}
 
 \item{startvalues}{A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.}
+
+\item{x}{If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).}
 
 \item{bootci}{If TRUE, also computes the bootstrap confidence interval.}
 
@@ -87,7 +93,7 @@ coef(pfit)
 # Here we also set the starting values (which is sometimes needed).
 allfit <- fitplcs(stemvul, "Species", varnames=c(PLC="PLC", WP="MPa"))
 
-3. Plot the fits.
+# 3. Plot the fits.
 plot(allfit, onepanel=TRUE, plotci=FALSE, selines="none", pxlinecol="dimgrey")
 
 # Coefficients show the estimates and 95\% CI (given by 'lower' and 'upper')
@@ -111,7 +117,7 @@ kfit2 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), WP_Kmax = -0.3)
 
 # Fit multiple conductivity curves at once (bootstrap omitted for speed).
 kfits3 <- fitconds(stemvul, "Species", varnames=list(K="Cond", WP="MPa"), WP_Kmax=-0.3, boot=FALSE)
-plot(kfits3, onepanel=T, ylim=c(0,12), selines="none")
+plot(kfits3, onepanel=TRUE, ylim=c(0,12), selines="none")
 
 # 5. Random effects.
 # This example takes into account the fact that the individual data points for a species are not 
