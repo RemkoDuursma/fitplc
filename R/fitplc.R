@@ -14,6 +14,7 @@
 #' @param model At the moment, only 'Weibull' is allowed.
 #' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
+#' @param nboot The number of bootstrap replicates (only relevant when \code{bootci=TRUE}).
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
 #' @param Kmax Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.
 #' @param WP_Kmax Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.
@@ -41,7 +42,9 @@
 #' # Make fit. Store results in object 'pfit'
 #' # 'varnames' specifies the names of the 'PLC' variable in the dataframe,
 #' # and water potential (WP). 
-#' pfit <- fitplc(dfr1, varnames=c(PLC="PLC", WP="MPa"))
+#' # In this example, we use only 50 bootstrap replicates but recommend you set this
+#' # to 1000 or so.
+#' pfit <- fitplc(dfr1, varnames=c(PLC="PLC", WP="MPa"), nboot=50)
 #' 
 #' # Look at fit
 #' pfit
@@ -58,7 +61,9 @@
 #' 
 #' # 2. Fit all species in the dataset.
 #' # Here we also set the starting values (which is sometimes needed).
-#' allfit <- fitplcs(stemvul, "Species", varnames=c(PLC="PLC", WP="MPa"))
+#' # In this example, we use only 50 bootstrap replicates but recommend you set this
+#' # to 1000 or so. 
+#' allfit <- fitplcs(stemvul, "Species", varnames=c(PLC="PLC", WP="MPa"), nboot=50)
 #' 
 #' # 3. Plot the fits.
 #' plot(allfit, onepanel=TRUE, plotci=FALSE, selines="none", pxlinecol="dimgrey")
@@ -69,17 +74,25 @@
 #' 
 #' # 3. Specify Weights. The default variable name is Weights, if present in the dataset
 #' # it will be used for weighted non-linear regression
+#' # In this example, we use only 50 bootstrap replicates but recommend you set this
+#' # to 1000 or so. 
 #' dfr1$Weights <- abs(50-dfr1$PLC)^1.2
-#' pfit <- fitplc(dfr1, varnames=c(PLC="PLC", WP="MPa"), weights=Weights)
+#' pfit <- fitplc(dfr1, varnames=c(PLC="PLC", WP="MPa"), weights=Weights, nboot=50)
 #' coef(pfit)
 #' 
-#' # 4. Fit the Weibull curve directly to the raw conductance data. Use this option when you don't want to transform your data to PLC. You have two options: specify the 'maximum' conductance yourself (and provide Kmax), or set the threshold water potential (Kmax_WP), which is then used to calculate Kmax (from the average of the conductance values where WP > Kmax_WP). 
+#' # 4. Fit the Weibull curve directly to the raw conductance data. 
+#' # Use this option when you don't want to transform your data to PLC. 
+#' # You have two options: specify the 'maximum' conductance yourself (and provide Kmax), 
+#' # or set the threshold water potential (Kmax_WP), which is then used to calculate Kmax
+#' # (from the average of the conductance values where WP > Kmax_WP).
 #' 
 #' # Option 1 : maximum conductivity (i.e. at full hydration) is known, and used as input.
-#' kfit1 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), Kmax=7.2)
+#' kfit1 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), Kmax=7.2, nboot=50)
 #'
 #' # Option 2 : calculate maximum cond. from data where water potential : -0.3 MPa.
-#' kfit2 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), WP_Kmax = -0.3)
+#' # In this example, we use only 50 bootstrap replicates but recommend you set this
+#' # to 1000 or so. 
+#' kfit2 <- fitcond(dfr1, varnames=c(K="Cond", WP="MPa"), WP_Kmax = -0.3, nboot=50)
 #' # Use plot(kfit1) as for fitplc, as well as coef() etc.
 #' 
 #' # Fit multiple conductivity curves at once (bootstrap omitted for speed).
@@ -99,6 +112,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    model="Weibull", 
                    startvalues=list(Px=3, S=20), x=50,
                    bootci=TRUE,
+                   nboot=999,
                    quiet=FALSE,
                    ...){
 
@@ -200,11 +214,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     if(bootci){
       if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
       p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
-                       startList=list(SX=Sh, PX=pxstart), weights=W)
+                       startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
       if(!quiet)message("done.")
     } else {
       p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
-                       startList=list(SX=Sh, PX=pxstart), weights=W)
+                       startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
     }
     
     # Predictions at innermost random effect
@@ -268,6 +282,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     l$bootci <- bootci
     l$condfit <- condfit
     l$Kmax <- Kmax
+    l$nboot <- nboot
     
     class(l) <- "plcfit"
     
