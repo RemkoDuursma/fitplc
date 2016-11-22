@@ -169,24 +169,38 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       Data <- data.frame(P=P, PLC=plc)
       
       # This is necessary - might have to revisit this method.
-      Data$PLC <- pmax(0.1, pmin(99.9, Data$PLC))
+      Data$PLCf <- pmax(0.1, pmin(99.9, Data$PLC))
       
       # Transformation as per P&vW
-      Data$logPLC <- log(100/Data$PLC - 1)
+      Data$logPLC <- log(100/Data$PLCf - 1)
+      
+      Data$minP <- -Data$P
   
       if(!is.null(W)){
-        lmfit <- lm(logPLC ~ P, data=Data, weights=W)
+        lmfit <- lm(logPLC ~ minP, data=Data, weights=W)
         br <- suppressWarnings(bootfit(lmfit, n=nboot, Data=Data, startList=NULL, weights=W))
       } else {
-        lmfit <- lm(logPLC ~ P, data=Data)
+        lmfit <- lm(logPLC ~ minP, data=Data)
         br <- suppressWarnings(bootfit(lmfit, n=nboot, Data=Data, startList=NULL))
       }
       
-      a <- br[,1]
-      b <- br[,2]
+      # Parameters as in P$vW
+      ab <- br[,1]
+      a <- br[,2]
+      b <- ab/a
+      
+      # Sampling distribution of Px
       Pxs <- (1/a)*(100/x - 1) + b
-      Px <- mean(Pxs)
       PxCi <- quantile(Pxs, probs=c(0.025, 0.975))
+      
+      cipars <- rbind(c(mean(a), quantile(a, probs=c(0.025,0.975))),
+                      c(mean(b), quantile(b, probs=c(0.025,0.975))) )
+      
+      Px <- (1/cipars[1,1])*(100/x - 1) + cipars[2,1]
+      cipars <- rbind(c(Px, PxCi), cipars)
+      
+      dimnames(cipars) <- list(c("PX","a","b"), 
+                               c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
       
       if(fitran){
         lmefit <- lme(logPLC ~ P,
@@ -204,9 +218,10 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$b <- br
       l$model <- model
       l$data <- data.frame(P=P, PLC=plc, relK=relK)
+      l$cipars <- cipars
       
       
-      preddfr <- data.frame(P=seq(min(Data$P), max(Data$P), length=101))
+      preddfr <- data.frame(minP=seq(min(Data$minP), max(Data$minP), length=101))
       l$pred <- as.data.frame(predict(lmfit, preddfr, interval="confidence"))
       l$pred <- 100/(exp(l$pred) + 1)
       l$pred$x <- preddfr$P
