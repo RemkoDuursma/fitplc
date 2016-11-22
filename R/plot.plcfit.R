@@ -70,11 +70,12 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     if(is.null(ylim))ylim <- c(0,multiplier*max(x$data$Y))
   }
   
-  toEmbol <- function(k)100 - 100*k
+  
   if(what == "embol"){
+    
     if(is.null(ylab))ylab <- "% Embolism"
     
-    x$data$Y <- toEmbol(x$data$relK)
+    x$data$Y <- relk_to_plc(x$data$relK)
     if(x$bootci){
       x$pred$lwr <- toEmbol(x$pred$lwr)
       x$pred$upr <- toEmbol(x$pred$upr)
@@ -91,6 +92,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       x$prednlmefix$y <- toEmbol(x$prednlmefix$y)
     }
     
+  } else {
+    x$data$Y <- x$data$relK
   }
   
   if(!add){

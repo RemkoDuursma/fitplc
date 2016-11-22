@@ -138,7 +138,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     if(!varnames["WP"] %in% names(dfr))
       stop("Check variable name for water potential!")
     
-    Y <- dfr[[varnames["PLC"]]]
+    plc <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
     
     if(!is.null(substitute(random))){
@@ -155,19 +155,23 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     W <- eval(substitute(weights), dfr)
     
     # check for NA
-    if(any(is.na(c(Y,P))))stop("Remove missing values first.")
+    if(any(is.na(c(plc,P))))stop("Remove missing values first.")
     
     # Need absolute values of water potential
     if(mean(P) < 0)P <- -P
     
     # Calculate relative conductivity:
-    relK <- (100 - Y)/100
+    relK <- plc_to_relk(plc)
     
     
     if(model == "sigmoidal"){
       
-      Data <- data.frame(P=P, PLC=Y)
+      Data <- data.frame(P=P, PLC=plc)
+      
+      # This is necessary - might have to revisit this method.
       Data$PLC <- pmax(0.1, pmin(99.9, Data$PLC))
+      
+      # Transformation as per P&vW
       Data$logPLC <- log(100/Data$PLC - 1)
   
       if(!is.null(W)){
@@ -184,8 +188,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       Px <- mean(Pxs)
       PxCi <- quantile(Pxs, probs=c(0.025, 0.975))
       
-      
-      
       if(fitran){
         lmefit <- lme(logPLC ~ P,
                         random= ~P|G,
@@ -201,6 +203,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$lmefit <- if(fitran)lmefit else NA
       l$b <- br
       l$model <- model
+      l$data <- data.frame(P=P, PLC=plc, relK=relK)
       
       
       preddfr <- data.frame(P=seq(min(Data$P), max(Data$P), length=101))
@@ -300,15 +303,16 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       cipars <- try(suppressMessages(confint(nlsfit)), silent=TRUE)
       if(inherits(cipars, "try-error")){
         cipars <- matrix(rep(NA,4),ncol=2)
-        dimnames(cipars) <- list(c("SX","PX"), c("2.5%","97.5%")) 
       }
+      dimnames(cipars) <- list(c("SX","PX"), c("Norm - 2.5%","Norm - 97.5%"))
       
       if(bootci){
         cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
         cipx <- quantile(p$boot[,"PX"], c(0.025,0.975))
   
-        bootpars <- matrix(c(coef(nlsfit),cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
-                           dimnames=list(c("SX","PX"),c("Estimate","2.5%","97.5%")))
+        bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
+                           dimnames=list(c("SX","PX"),c("Boot - 2.5%","Boot - 97.5%")))
+        cipars <- cbind(cipars, bootpars)
       } else {
         bootpars <- NA
       }               
@@ -319,8 +323,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$prednlme <- pm
       l$prednlmefix <- pmf
       l$ci <- cipars
-      l$bootpars <- bootpars
-      l$data <- data.frame(P=P, Y=Y, relK=relK)
+      l$data <- data.frame(P=P, PLC=plc, relK=relK)
       l$x <- x
       l$model <- model
       l$fitran <- fitran
