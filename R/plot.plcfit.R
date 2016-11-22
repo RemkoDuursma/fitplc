@@ -35,6 +35,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         what=c("relk","embol"), ...){
   
   
+  if(x$model == "sigmoidal")plotPx <- FALSE # temporary!!
   
   if(is.null(multiplier)){
     multiplier <- x$Kmax

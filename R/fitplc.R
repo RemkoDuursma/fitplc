@@ -109,7 +109,7 @@
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
-                   model="Weibull", 
+                   model=c("Weibull","sigmoidal"), 
                    startvalues=list(Px=3, S=20), x=50,
                    bootci=TRUE,
                    nboot=999,
@@ -117,6 +117,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    ...){
 
                    
+  
+    model <- match.arg(model)
   
     # Find out if called from fitcond.
     mc <- names(as.list(match.call()))
@@ -161,132 +163,189 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # Calculate relative conductivity:
     relK <- (100 - Y)/100
     
-    if(!fitran){
-      Data <- data.frame(P=P, relK=relK)
-    } else {
-      Data <- data.frame(P=P, relK=relK, G=G)
-    }
     
-    # guess starting values
-    if(is.null(startvalues)){
-      pxstart <- (1-x/100)*(max(P) - min(P))
-      Sh <- 15
-    } else {
-      pxstart <- startvalues$Px
-      Sh <- startvalues$S
-    }
-    
-    # fit
-    Data$X <- x
-    if(!quiet)message("Fitting nls ...", appendLF=FALSE)
-
-    # Weighted NLS
-    if(!is.null(W)){
-        nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
-                    data=Data, start=list(SX=Sh, PX=pxstart),
-                    weights=W)
-        if(fitran){
-          nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
-                     fixed=list(SX ~ 1, PX ~ 1),
-                     random= SX + PX ~ 1|G,
-                     start=list(fixed=c(SX=coef(nlsfit)["SX"], 
-                                        PX=coef(nlsfit)["PX"])),
-                     weights=W,
-                     data=Data)
-        }
-    } else {
+    if(model == "sigmoidal"){
       
-    # Ordinary NLS
-      nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
-                    data=Data, start=list(SX=Sh, PX=pxstart))
+      Data <- data.frame(P=P, PLC=Y)
+      Data$PLC <- pmax(0.1, pmin(99.9, Data$PLC))
+      Data$logPLC <- log(100/Data$PLC - 1)
+  
+      if(!is.null(W)){
+        lmfit <- lm(logPLC ~ P, data=Data, weights=W)
+        br <- suppressWarnings(bootfit(lmfit, n=nboot, Data=Data, startList=NULL, weights=W))
+      } else {
+        lmfit <- lm(logPLC ~ P, data=Data)
+        br <- suppressWarnings(bootfit(lmfit, n=nboot, Data=Data, startList=NULL))
+      }
+      
+      a <- br[,1]
+      b <- br[,2]
+      Pxs <- (1/a)*(100/x - 1) + b
+      Px <- mean(Pxs)
+      PxCi <- quantile(Pxs, probs=c(0.025, 0.975))
+      
+      
+      
       if(fitran){
-        nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
-                        fixed=list(SX ~ 1, PX ~ 1),
-                        random= SX + PX ~ 1|G,
-                        start=list(fixed=c(SX=coef(nlsfit)["SX"], 
-                                           PX=coef(nlsfit)["PX"])),
+        lmefit <- lme(logPLC ~ P,
+                        random= ~P|G,
+                        weights=W,
                         data=Data)
       }
-    }
-    if(!quiet)message("done.")
-    
-    # bootstrap
-    if(bootci){
-      if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
-      p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
-                       startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
-      if(!quiet)message("done.")
-    } else {
-      p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
-                       startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
-    }
-    
-    # Predictions at innermost random effect
-    if(fitran){
       
-      d <- split(Data, Data$G)
-      pm <- list()
-      for(i in 1:length(d)){
-        ps <- seq(min(d[[i]]$P),max(d[[i]]$P),length=101)
-        newdat <- data.frame(P=ps, 
-                             G=unique(d[[i]]$G), X=x)
-        y <- predict(nlmefit, newdat)
-        pm[[i]] <- data.frame(x=ps, y=y) 
-      }
-      ps <- seq(min(P),max(P),length=101)
-      newdat <- data.frame(P=ps, X=x)
-      pmf <- data.frame(x=ps, y=predict(nlmefit, newdat, level=0))
+      l <- list()
+      l$fit <- lmfit
       
-    } else {
-      pm <- NA
-      pmf <- NA
+      l$Px <- Px
+      l$PxCi <- PxCi
+      l$lmefit <- if(fitran)lmefit else NA
+      l$b <- br
+      l$model <- model
+      
+      
+      preddfr <- data.frame(P=seq(min(Data$P), max(Data$P), length=101))
+      l$pred <- as.data.frame(predict(lmfit, preddfr, interval="confidence"))
+      l$pred <- 100/(exp(l$pred) + 1)
+      l$pred$x <- preddfr$P
+      
+      return(l)
     }
-    
-    # ci on pars.
-    cipars <- try(suppressMessages(confint(nlsfit)), silent=TRUE)
-    if(inherits(cipars, "try-error")){
-      cipars <- matrix(rep(NA,4),ncol=2)
-      dimnames(cipars) <- list(c("SX","PX"), c("2.5%","97.5%")) 
-    }
-    
-    if(bootci){
-      cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
-      cipx <- quantile(p$boot[,"PX"], c(0.025,0.975))
 
-      bootpars <- matrix(c(coef(nlsfit),cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
-                         dimnames=list(c("SX","PX"),c("Estimate","2.5%","97.5%")))
-    } else {
-      bootpars <- NA
-    }               
     
-    l <- list()
-    l$fit <- nlsfit
-    l$pred <- p
-    l$prednlme <- pm
-    l$prednlmefix <- pmf
-    l$ci <- cipars
-    l$bootpars <- bootpars
-    l$data <- data.frame(P=P, Y=Y, relK=relK)
-    l$x <- x
-    l$fitran <- fitran
-    if(fitran){
-      l$nlmefit <- nlmefit
-      l$cinlme <- intervals(nlmefit,which="fixed")$fixed
-      l$ranvar <- substitute(random)
-    } else {
-      l$nlmefit <- NA
-      l$cinlme <- NA
-      l$ranvar <- NA
-    }
+    # move to subfunction
+    if(model == "Weibull"){
+    
+      if(!fitran){
+        Data <- data.frame(P=P, relK=relK)
+      } else {
+        Data <- data.frame(P=P, relK=relK, G=G)
+      }
       
-    l$bootci <- bootci
-    l$condfit <- condfit
-    l$Kmax <- Kmax
-    l$nboot <- nboot
+      # guess starting values
+      if(is.null(startvalues)){
+        pxstart <- (1-x/100)*(max(P) - min(P))
+        Sh <- 15
+      } else {
+        pxstart <- startvalues$Px
+        Sh <- startvalues$S
+      }
+      
+      # fit
+      Data$X <- x
+      if(!quiet)message("Fitting nls ...", appendLF=FALSE)
+  
+      # Weighted NLS
+      if(!is.null(W)){
+          nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
+                      data=Data, start=list(SX=Sh, PX=pxstart),
+                      weights=W)
+          if(fitran){
+            nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+                       fixed=list(SX ~ 1, PX ~ 1),
+                       random= SX + PX ~ 1|G,
+                       start=list(fixed=c(SX=coef(nlsfit)["SX"], 
+                                          PX=coef(nlsfit)["PX"])),
+                       weights=W,
+                       data=Data)
+          }
+      } else {
+        
+      # Ordinary NLS
+        nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
+                      data=Data, start=list(SX=Sh, PX=pxstart))
+        if(fitran){
+          nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+                          fixed=list(SX ~ 1, PX ~ 1),
+                          random= SX + PX ~ 1|G,
+                          start=list(fixed=c(SX=coef(nlsfit)["SX"], 
+                                             PX=coef(nlsfit)["PX"])),
+                          data=Data)
+        }
+      }
+      if(!quiet)message("done.")
+      
+      # bootstrap
+      if(bootci){
+        if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
+        p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
+                         startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
+        if(!quiet)message("done.")
+      } else {
+        p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
+                         startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
+      }
+      
+      # Predictions at innermost random effect
+      if(fitran){
+        
+        d <- split(Data, Data$G)
+        pm <- list()
+        for(i in 1:length(d)){
+          ps <- seq(min(d[[i]]$P),max(d[[i]]$P),length=101)
+          newdat <- data.frame(P=ps, 
+                               G=unique(d[[i]]$G), X=x)
+          y <- predict(nlmefit, newdat)
+          pm[[i]] <- data.frame(x=ps, y=y) 
+        }
+        ps <- seq(min(P),max(P),length=101)
+        newdat <- data.frame(P=ps, X=x)
+        pmf <- data.frame(x=ps, y=predict(nlmefit, newdat, level=0))
+        
+      } else {
+        pm <- NA
+        pmf <- NA
+      }
+      
+      # ci on pars.
+      cipars <- try(suppressMessages(confint(nlsfit)), silent=TRUE)
+      if(inherits(cipars, "try-error")){
+        cipars <- matrix(rep(NA,4),ncol=2)
+        dimnames(cipars) <- list(c("SX","PX"), c("2.5%","97.5%")) 
+      }
+      
+      if(bootci){
+        cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
+        cipx <- quantile(p$boot[,"PX"], c(0.025,0.975))
+  
+        bootpars <- matrix(c(coef(nlsfit),cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
+                           dimnames=list(c("SX","PX"),c("Estimate","2.5%","97.5%")))
+      } else {
+        bootpars <- NA
+      }               
     
-    class(l) <- "plcfit"
+      l <- list()
+      l$fit <- nlsfit
+      l$pred <- p
+      l$prednlme <- pm
+      l$prednlmefix <- pmf
+      l$ci <- cipars
+      l$bootpars <- bootpars
+      l$data <- data.frame(P=P, Y=Y, relK=relK)
+      l$x <- x
+      l$model <- model
+      l$fitran <- fitran
+      if(fitran){
+        l$nlmefit <- nlmefit
+        l$cinlme <- intervals(nlmefit,which="fixed")$fixed
+        l$ranvar <- substitute(random)
+      } else {
+        l$nlmefit <- NA
+        l$cinlme <- NA
+        l$ranvar <- NA
+      }
+        
+      l$bootci <- bootci
+      l$condfit <- condfit
+      l$Kmax <- Kmax
+      l$nboot <- nboot
+      
+      class(l) <- "plcfit"
+      
+      return(l)
+    }
     
-return(l)
+    
+    
 }    
 
 

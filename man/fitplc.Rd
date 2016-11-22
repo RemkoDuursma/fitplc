@@ -11,8 +11,8 @@ fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
   WP_Kmax = NULL, ...)
 
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
-  random = NULL, model = "Weibull", startvalues = list(Px = 3, S = 20),
-  x = 50, bootci = TRUE, nboot = 999, quiet = FALSE, ...)
+  random = NULL, model = c("Weibull", "sigmoidal"), startvalues = list(Px
+  = 3, S = 20), x = 50, bootci = TRUE, nboot = 999, quiet = FALSE, ...)
 
 fitplcs(dfr, group, ...)
 

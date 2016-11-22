@@ -5,6 +5,20 @@
 
 stemros <- read.csv("test/stemvul-ros.csv")
 
+
+f <- fitplc(stemros, model="sigm")
+coef(f$fit)
+f$Px
+f$PxCi
+
+f2 <- fitplc(stemros, model="Weib")
+coef(f2)
+
+
+
+
+
+
 stemros$Cond <- 5.4 * (1 - stemros$PLC/100)
 
 f <- fitcond(stemros, varnames=c(K="Cond", WP="MPa"), WP_Kmax=-0.3)
