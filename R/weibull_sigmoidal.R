@@ -28,12 +28,16 @@ fweibull <- function(P, SX, PX, X=50){
 #' @examples
 #' curve(fsigmoidal(x, PX=-2, a=5), from=0, to=-5)
 #' curve(fsigmoidal(x, PX=-2, a=2), add=T)
+#' 
+#' # Comparison to Weibull
+#' curve(fweibull(x, PX=3, SX=40), from=0, to=6)
+#' curve(fsigmoidal(x, PX=3, a=4*(40/100)), add=TRUE, col="red")
 fsigmoidal <- function(P, PX, a, X=50){
   
   X <- X[1] # vector might have been passed but X cannot actually vary.
   P <- -P
   PX <- -PX
-  b <- PX - (1/a)*(100/X - 1)
+  b <- PX - (1/a)*(50/X - 1)
   
   1 - 1/(1 + exp(a*(P - b)))
 }

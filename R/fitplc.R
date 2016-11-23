@@ -190,7 +190,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       b <- ab/a
       
       # Sampling distribution of Px
-      Pxs <- (1/a)*(100/x - 1) + b
+      Pxs <- (1/a)*(50/x - 1) + b
       PxCi <- quantile(Pxs, probs=c(0.025, 0.975))
       
       cipars <- rbind(c(mean(a), quantile(a, probs=c(0.025,0.975))),
