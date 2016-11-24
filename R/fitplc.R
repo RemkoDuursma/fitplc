@@ -111,6 +111,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    random=NULL,
                    model=c("Weibull","sigmoidal"), 
                    startvalues=list(Px=3, S=20), x=50,
+                   coverage=0.95,
                    bootci=TRUE,
                    nboot=999,
                    quiet=FALSE,
@@ -185,21 +186,26 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       }
       
       # Parameters as in P$vW
-      ab <- br[,1]
-      a <- br[,2]
-      b <- ab/a
       
-      # Sampling distribution of Px
-      Pxs <- (1/a)*(50/x - 1) + b
-      PxCi <- quantile(Pxs, probs=c(0.025, 0.975))
+      # bootstrap
+      boot_ab <- br[,1]
+      boot_a <- br[,2]
+      boot_b <- boot_ab / boot_a
+      boot_Sx <- 100 * boot_a/4  
+      boot_Px <- ab_to_px(boot_a, boot_b, x)
       
-      cipars <- rbind(c(mean(a), quantile(a, probs=c(0.025,0.975))),
-                      c(mean(b), quantile(b, probs=c(0.025,0.975))) )
+      # ML estimate of P50 (i.e. regression)
+      ml_ab <- coef(lmfit)[[1]]
+      ml_a <- coef(lmfit)[[2]]
+      ml_b <- ml_ab / ml_a
+      ml_Sx <- 100 * ml_a/4
+      ml_Px <- ab_to_px(ml_a, ml_b, x)
       
-      Px <- (1/cipars[1,1])*(100/x - 1) + cipars[2,1]
-      cipars <- rbind(c(Px, PxCi), cipars)
+      # Coefficients matrix
+      cipars <- rbind(c(ml_Px, boot_ci(boot_Px, coverage)), 
+                      c(ml_Sx, boot_ci(boot_Sx, coverage)))
       
-      dimnames(cipars) <- list(c("PX","a","b"), 
+      dimnames(cipars) <- list(c("PX","SX"), 
                                c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
       
       if(fitran){
@@ -226,6 +232,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$pred <- 100/(exp(l$pred) + 1)
       l$pred$x <- preddfr$P
       
+      class(l) <- "plcfit"
       return(l)
     }
 
@@ -319,7 +326,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       if(inherits(cipars, "try-error")){
         cipars <- matrix(rep(NA,4),ncol=2)
       }
-      dimnames(cipars) <- list(c("SX","PX"), c("Norm - 2.5%","Norm - 97.5%"))
+      cipars <- cbind(coef(nlsfit), cipars)
+      dimnames(cipars) <- list(c("SX","PX"), c("Estimate", "Norm - 2.5%","Norm - 97.5%"))
       
       if(bootci){
         cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
@@ -337,7 +345,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$pred <- p
       l$prednlme <- pm
       l$prednlmefix <- pmf
-      l$ci <- cipars
+      l$cipars <- cipars
       l$data <- data.frame(P=P, PLC=plc, relK=relK)
       l$x <- x
       l$model <- model
