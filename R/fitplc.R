@@ -139,9 +139,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     if(!varnames["WP"] %in% names(dfr))
       stop("Check variable name for water potential!")
     
-    plc <- dfr[[varnames["PLC"]]]
-    P <- dfr[[varnames["WP"]]]
-    
+
     if(!is.null(substitute(random))){
       G <- eval(substitute(random), dfr)
       fitran <- TRUE
@@ -153,19 +151,27 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       fitran <- FALSE
     }
     
-    W <- eval(substitute(weights), dfr)
-    
-    # check for NA
+
+    # Extract data
+    plc <- dfr[[varnames["PLC"]]]
+    P <- dfr[[varnames["WP"]]]
     if(any(is.na(c(plc,P))))stop("Remove missing values first.")
+    relK <- plc_to_relk(plc)
     
     # Need absolute values of water potential
     if(mean(P) < 0)P <- -P
     
-    # Calculate relative conductivity:
-    relK <- plc_to_relk(plc)
+    # weights, if provided
+    W <- eval(substitute(weights), dfr)
     
     
     if(model == "sigmoidal"){
+      
+      # sub-functions to make:
+      # fit_sigmoidal
+      # fit_sigmoidal_lme
+      # fit_weibull
+      # fit_weibull_nlme
       
       Data <- data.frame(P=P, PLC=plc)
       
@@ -218,20 +224,21 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l <- list()
       l$fit <- lmfit
       
-      l$Px <- Px
-      l$PxCi <- PxCi
       l$lmefit <- if(fitran)lmefit else NA
       l$b <- br
       l$model <- model
       l$data <- data.frame(P=P, PLC=plc, relK=relK)
       l$cipars <- cipars
       
-      
       preddfr <- data.frame(minP=seq(min(Data$minP), max(Data$minP), length=101))
       l$pred <- as.data.frame(predict(lmfit, preddfr, interval="confidence"))
-      l$pred <- 100/(exp(l$pred) + 1)
-      l$pred$x <- preddfr$P
-      
+      l$pred <- (100 - 100/(exp(l$pred) + 1))/100
+      l$pred$x <- -preddfr$minP
+      l$condfit <- condfit
+      l$fitran <- fitran
+      l$bootci <- TRUE
+      l$Kmax <- 1
+      l$x <- x
       class(l) <- "plcfit"
       return(l)
     }

@@ -23,10 +23,9 @@ predict_nls <- function(object, xvarname=NULL, from=NULL, to=NULL, x=NULL,interv
   
   dfr <- as.data.frame(xi)
   names(dfr) <- xvarname
-  pred <- predict(object, dfr)
   l <- list()
   l$x <- xi
-  l$pred <- pred
+  l$fit <- predict(object, dfr)
   class(l) <- "nlspred"
   
   if(interval == "confidence"){
@@ -63,11 +62,11 @@ plot.nls <- function(x, add=FALSE,
   p <- predict_nls(x,...)
   
   if(!add){
-    with(p, plot(rep(x,3), c(pred,upr,lwr), type='n'))
+    with(p, plot(rep(x,3), c(fit,upr,lwr), type='n'))
   }
   
   with(p,{
-    lines(x, pred, lty=lty[1], lwd=lwd[1], col=col[1])
+    lines(x, fit, lty=lty[1], lwd=lwd[1], col=col[1])
     if("upr" %in% names(p)){
       lines(x, upr, lty=lty[2], lwd=lwd[2], col=col[2])
       lines(x, lwr, lty=lty[2], lwd=lwd[2], col=col[2])

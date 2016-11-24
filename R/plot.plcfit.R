@@ -17,7 +17,7 @@
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
-#' @param what Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.
+#' @param what Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).
 #' @param \dots Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})
 #' @export
 #' @rdname plot.plcfit
@@ -27,15 +27,14 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         multiplier=NULL,
                         selines=c("parametric","bootstrap","none"),
-                        plotrandom=FALSE,linecol="black",
+                        plotrandom=FALSE,
+                        linecol="black",
                         linecol2="blue",
                         pxlinecol="red",
                         pxcex=0.7,
                         citype=c("polygon","lines"),
-                        what=c("relk","embol"), ...){
+                        what=c("relk","PLC","embol"), ...){
   
-  
-  if(x$model == "sigmoidal")plotPx <- FALSE # temporary!!
   
   if(is.null(multiplier)){
     multiplier <- x$Kmax
@@ -48,6 +47,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   type <- ifelse(plotdata, 'p', 'n')
   what <- match.arg(what)
+  if(what == "embol")what <- "PLC"
   
   # override
   if(x$condfit){
@@ -57,45 +57,47 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   if(plotrandom && !x$fitran)
     stop("To plot random effects predictions, refit with 'random' argument.")
   
-  if(what == "relk"){
-    if(is.null(ylab)){
+  # Set y-axis label
+  if(is.null(ylab)){
+    if(what == "relk"){
+      
       if(!x$condfit){
         ylab <- "Relative conductivity (0 - 1)"
       } else {
         ylab <- "Conductivity / conductance (in units provided)"
       }
+    
+    } else if(what == "PLC"){
+      ylab <- "% Embolism"
     }
-      
-    x$data$Y <- x$data$relK
-    if(is.null(ylim))ylim <- c(0,multiplier*max(x$data$Y))
   }
   
-  
-  if(what == "embol"){
-    
-    if(is.null(ylab))ylab <- "% Embolism"
-    
-    x$data$Y <- relk_to_plc(x$data$relK)
-    if(x$bootci){
-      x$pred$lwr <- toEmbol(x$pred$lwr)
-      x$pred$upr <- toEmbol(x$pred$upr)
-    }
-    x$pred$pred <- toEmbol(x$pred$pred)
-    if(is.null(ylim))ylim <- c(0,100)
-    
-    if(x$fitran && plotrandom){
-      
-      ng <- length(x$prednlme)
-      for(i in 1:ng){
-        x$prednlme[[i]]$y <- toEmbol(x$prednlme[[i]]$y)
-      }
-      x$prednlmefix$y <- toEmbol(x$prednlmefix$y)
-    }
-    
-  } else {
+  # Set data
+  if(what == "relk"){
     x$data$Y <- x$data$relK
+  } else if(what == "PLC"){
+    x$data$Y <- x$data$PLC
   }
   
+  # Set y-axis limit
+  if(is.null(ylim))ylim <- c(0,multiplier*max(x$data$Y))
+  
+  if(x$bootci){
+    x$pred$lwr <- relk_to_plc(x$pred$lwr)
+    x$pred$upr <- relk_to_plc(x$pred$upr)
+  }
+  x$pred$pred <- relk_to_plc(x$pred$fit)
+  #if(is.null(ylim))ylim <- c(0,100)
+  
+  if(x$fitran && plotrandom){
+    
+    ng <- length(x$prednlme)
+    for(i in 1:ng){
+      x$prednlme[[i]]$y <- relk_to_plc(x$prednlme[[i]]$y)
+    }
+    x$prednlmefix$y <- relk_to_plc(x$prednlmefix$y)
+  }
+
   if(!add){
     with(x, {
       plot(data$P, multiplier * data$Y, ylim=ylim, pch=pch,
@@ -108,6 +110,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       points(data$P, multiplier * data$Y, pch=pch, type=type,...)
     })
   }
+  
   if(!plotrandom){
     if(x$bootci && plotci){
       if(citype == "lines"){
@@ -128,7 +131,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       
     }
     with(x$pred,{
-      lines(x, multiplier * pred, type='l', lty=1, col=linecol)
+      lines(x, multiplier * fit, type='l', lty=1, col=linecol)
     })
   }
   
@@ -141,13 +144,13 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   if(plotPx){
     if(!x$fitran){
-      px <- coef(x$fit)["PX"]
+      px <- coef(x)["PX","Estimate"]
       
       if(selines == "bootstrap"){
-        px_ci <- x$bootpars[2,2:3]
+        px_ci <- coef(x)["PX",c("Boot - 2.5%","Boot - 97.5%")]
       } 
       if(selines == "parametric") {
-        px_ci <- x$ci[2,]
+        px_ci <- coef(x)["PX",c("Norm - 2.5%","Norm - 97.5%")]
       }
       
     } else {
