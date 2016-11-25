@@ -26,7 +26,7 @@
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         multiplier=NULL,
-                        selines=c("parametric","bootstrap","none"),
+                        selines=c("bootstrap","parametric","none"),
                         plotrandom=FALSE,
                         linecol="black",
                         linecol2="blue",
@@ -77,16 +77,16 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     x$data$Y <- x$data$relK
   } else if(what == "PLC"){
     x$data$Y <- x$data$PLC
+    x$pred$fit <- relk_to_plc(x$pred$fit)
+    if(x$bootci){
+      x$pred$lwr <- relk_to_plc(x$pred$lwr)
+      x$pred$upr <- relk_to_plc(x$pred$upr)
+    }
   }
   
   # Set y-axis limit
   if(is.null(ylim))ylim <- c(0,multiplier*max(x$data$Y))
-  
-  if(x$bootci){
-    x$pred$lwr <- relk_to_plc(x$pred$lwr)
-    x$pred$upr <- relk_to_plc(x$pred$upr)
-  }
-  x$pred$pred <- relk_to_plc(x$pred$fit)
+
   #if(is.null(ylim))ylim <- c(0,100)
   
   if(x$fitran && plotrandom){
@@ -146,10 +146,10 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     if(!x$fitran){
       px <- coef(x)["PX","Estimate"]
       
-      if(selines == "bootstrap"){
+      # !! simplify and write warning
+      if(selines == "bootstrap" && any(grepl("Boot", colnames(coef(x))))){
         px_ci <- coef(x)["PX",c("Boot - 2.5%","Boot - 97.5%")]
-      } 
-      if(selines == "parametric") {
+      } else {
         px_ci <- coef(x)["PX",c("Norm - 2.5%","Norm - 97.5%")]
       }
       

@@ -229,11 +229,24 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$model <- model
       l$data <- data.frame(P=P, PLC=plc, relK=relK)
       l$cipars <- cipars
-      
+       
       preddfr <- data.frame(minP=seq(min(Data$minP), max(Data$minP), length=101))
-      l$pred <- as.data.frame(predict(lmfit, preddfr, interval="confidence"))
-      l$pred <- (100 - 100/(exp(l$pred) + 1))/100
-      l$pred$x <- -preddfr$minP
+      
+      # large sample CI - stored but not yet used anywhere
+      l$normpred <- as.data.frame(predict(lmfit, preddfr, interval="confidence"))
+      l$normpred <- sigmoid_untrans(l$normpred)
+      l$normpred$x <- -preddfr$minP
+    
+      # boot CI - used in plotting
+      bootm <- apply(br,1, function(x)x[1] + x[2]*preddfr$minP)
+      bootpred <- as.data.frame(t(apply(bootm, 1, boot_ci, coverage=coverage)))
+      names(bootpred) <- c("lwr","upr")
+      bootpred <- lapply(bootpred, sigmoid_untrans)
+      bootpred$x <- -preddfr$minP
+      bootpred$fit <- l$normpred$fit
+      l$pred <- bootpred
+      
+      l$bootpred <- bootpred
       l$condfit <- condfit
       l$fitran <- fitran
       l$bootci <- TRUE
