@@ -120,6 +120,17 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
 
                    
   
+    # sigmoid_lm
+    # sigmoid_lme
+    # weibull_nls
+    # weibull_nlme
+    
+    # return list with
+    # fit
+    # cipars (estimates, CI for Sx, Px with norm and/or boot)
+    # predictions fixed effect, confidence interval (lwr,upr)
+    # predictions innermost random effect
+  
     model <- match.arg(model)
   
     # Find out if called from fitcond.
@@ -185,13 +196,15 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       ml_Sx <- mf$Sx
       ml_Px <- mf$Px
         
-        
       # Coefficients matrix
       cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
                       c(ml_Px, boot_ci(boot_Px, coverage)))
       
       dimnames(cipars) <- list(c("SX","PX"), 
                                c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
+      
+      # f must be component with 'fit' and 'boot'
+      pred <- get_boot_pred_sigmoid(f, Data, coverage)
       
       if(fitran){
         lmefit <- lme(logPLC ~ P,
@@ -208,24 +221,13 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$model <- model
       l$data <- Data[,c("P","PLC","relK")]
       l$cipars <- cipars
-       
-      preddfr <- data.frame(minP=seq(min(Data$minP), max(Data$minP), length=101))
       
       # large sample CI - stored but not yet used anywhere
-      l$normpred <- as.data.frame(predict(f$fit, preddfr, interval="confidence"))
-      l$normpred <- sigmoid_untrans(l$normpred)
-      l$normpred$x <- -preddfr$minP
+      
     
       # boot CI - used in plotting
-      bootm <- apply(f$boot,1, function(x)x[1] + x[2]*preddfr$minP)
-      bootpred <- as.data.frame(t(apply(bootm, 1, boot_ci, coverage=coverage)))
-      names(bootpred) <- c("lwr","upr")
-      bootpred <- lapply(bootpred, sigmoid_untrans)
-      bootpred$x <- -preddfr$minP
-      bootpred$fit <- l$normpred$fit
-      l$pred <- bootpred
+      l$pred <- pred
       
-      l$bootpred <- bootpred
       l$condfit <- condfit
       l$fitran <- fitran
       l$bootci <- TRUE
@@ -393,3 +395,20 @@ sigfit_coefs <- function(c1,c2,x){
   
   list(Px=unname(Px), Sx=unname(Sx))
 }
+
+get_boot_pred_sigmoid <- function(f, data, coverage){
+  
+  preddfr <- data.frame(minP=seq(min(data$minP), max(data$minP), length=101))
+  
+  normpred <- sigmoid_untrans(predict(f$fit, preddfr, interval="none"))
+  
+  bootm <- apply(f$boot,1, function(x)x[1] + x[2]*preddfr$minP)
+  bootpred <- as.data.frame(t(apply(bootm, 1, boot_ci, coverage=coverage)))
+  names(bootpred) <- c("lwr","upr")
+  bootpred <- lapply(bootpred, sigmoid_untrans)
+  bootpred$x <- -preddfr$minP
+  bootpred$fit <- normpred
+  
+  return(bootpred)
+}
+
