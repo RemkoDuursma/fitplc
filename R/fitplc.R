@@ -110,7 +110,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
                    model=c("Weibull","sigmoidal"), 
-                   startvalues=list(Px=3, S=20), x=50,
+                   #startvalues=list(Px=3, S=20), 
+                   x=50,
                    coverage=0.95,
                    bootci=TRUE,
                    nboot=999,
@@ -148,6 +149,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         if(!quiet)message("Not performing bootstrap when random effects present.")
       }
     } else {
+      G <- NA
       fitran <- FALSE
     }
     
@@ -164,54 +166,34 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # weights, if provided
     W <- eval(substitute(weights), dfr)
     
+    # Dataset tidied
+    Data <- data.frame(P=P, PLC=plc, relK=relK, G=G)
+    Data$minP <- -Data$P  # negative valued water potential
+    
     
     if(model == "sigmoidal"){
       
-      # sub-functions to make:
-      # fit_sigmoidal
-      # fit_sigmoidal_lme
-      # fit_weibull
-      # fit_weibull_nlme
-      
-      Data <- data.frame(P=P, PLC=plc)
-      
-      # This is necessary - might have to revisit this method.
-      Data$PLCf <- pmax(0.1, pmin(99.9, Data$PLC))
-      
-      # Transformation as per P&vW
-      Data$logPLC <- log(100/Data$PLCf - 1)
-      
-      Data$minP <- -Data$P
-  
-      if(!is.null(W)){
-        lmfit <- lm(logPLC ~ minP, data=Data, weights=W)
-        br <- suppressWarnings(bootfit(lmfit, n=nboot, Data=Data, startList=NULL, weights=W))
-      } else {
-        lmfit <- lm(logPLC ~ minP, data=Data)
-        br <- suppressWarnings(bootfit(lmfit, n=nboot, Data=Data, startList=NULL))
-      }
-      
-      # Parameters as in P$vW
+      f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
       
       # bootstrap
-      boot_ab <- br[,1]
-      boot_a <- br[,2]
+      boot_ab <- f$boot[,1]
+      boot_a <- f$boot[,2]
       boot_b <- boot_ab / boot_a
       boot_Sx <- 100 * boot_a/4  
       boot_Px <- ab_to_px(boot_a, boot_b, x)
       
       # ML estimate of P50 (i.e. regression)
-      ml_ab <- coef(lmfit)[[1]]
-      ml_a <- coef(lmfit)[[2]]
+      ml_ab <- coef(f$fit)[[1]]
+      ml_a <- coef(f$fit)[[2]]
       ml_b <- ml_ab / ml_a
       ml_Sx <- 100 * ml_a/4
       ml_Px <- ab_to_px(ml_a, ml_b, x)
       
       # Coefficients matrix
-      cipars <- rbind(c(ml_Px, boot_ci(boot_Px, coverage)), 
-                      c(ml_Sx, boot_ci(boot_Sx, coverage)))
+      cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
+                      c(ml_Px, boot_ci(boot_Px, coverage)))
       
-      dimnames(cipars) <- list(c("PX","SX"), 
+      dimnames(cipars) <- list(c("SX","PX"), 
                                c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
       
       if(fitran){
@@ -222,23 +204,23 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       }
       
       l <- list()
-      l$fit <- lmfit
+      l$fit <- f$fit
       
       l$lmefit <- if(fitran)lmefit else NA
-      l$b <- br
+      l$b <- f$boot
       l$model <- model
-      l$data <- data.frame(P=P, PLC=plc, relK=relK)
+      l$data <- Data[,c("P","PLC","relK")]
       l$cipars <- cipars
        
       preddfr <- data.frame(minP=seq(min(Data$minP), max(Data$minP), length=101))
       
       # large sample CI - stored but not yet used anywhere
-      l$normpred <- as.data.frame(predict(lmfit, preddfr, interval="confidence"))
+      l$normpred <- as.data.frame(predict(f$fit, preddfr, interval="confidence"))
       l$normpred <- sigmoid_untrans(l$normpred)
       l$normpred$x <- -preddfr$minP
     
       # boot CI - used in plotting
-      bootm <- apply(br,1, function(x)x[1] + x[2]*preddfr$minP)
+      bootm <- apply(f$boot,1, function(x)x[1] + x[2]*preddfr$minP)
       bootpred <- as.data.frame(t(apply(bootm, 1, boot_ci, coverage=coverage)))
       names(bootpred) <- c("lwr","upr")
       bootpred <- lapply(bootpred, sigmoid_untrans)
@@ -260,12 +242,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # move to subfunction
     if(model == "Weibull"){
     
-      if(!fitran){
-        Data <- data.frame(P=P, relK=relK)
-      } else {
-        Data <- data.frame(P=P, relK=relK, G=G)
-      }
-      
       # guess starting values
       if(is.null(startvalues)){
         pxstart <- (1-x/100)*(max(P) - min(P))
@@ -393,5 +369,26 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     
     
 }    
+
+
+
+do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
+  
+  # This is necessary - might have to revisit this method.
+  data$PLCf <- pmax(0.1, pmin(99.9, data$PLC))
+  
+  # Transformation as per P&vW
+  data$logPLC <- log(100/data$PLCf - 1)
+  
+  if(!is.null(W)){
+    lmfit <- lm(logPLC ~ minP, data=data, weights=W)
+    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, startList=NULL, weights=W)) else NA
+  } else {
+    lmfit <- lm(logPLC ~ minP, data=data)
+    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, startList=NULL)) else NA
+  }
+  
+  return(list(fit=lmfit, boot=br))
+}
 
 
