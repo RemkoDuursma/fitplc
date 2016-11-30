@@ -171,24 +171,21 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Data$minP <- -Data$P  # negative valued water potential
     
     
+    
     if(model == "sigmoidal"){
       
       f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
       
-      # bootstrap
-      boot_ab <- f$boot[,1]
-      boot_a <- f$boot[,2]
-      boot_b <- boot_ab / boot_a
-      boot_Sx <- 100 * boot_a/4  
-      boot_Px <- ab_to_px(boot_a, boot_b, x)
+      cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
+      boot_Sx <- cf$Sx  
+      boot_Px <- cf$Px
       
-      # ML estimate of P50 (i.e. regression)
-      ml_ab <- coef(f$fit)[[1]]
-      ml_a <- coef(f$fit)[[2]]
-      ml_b <- ml_ab / ml_a
-      ml_Sx <- 100 * ml_a/4
-      ml_Px <- ab_to_px(ml_a, ml_b, x)
-      
+      p <- coef(f$fit)
+      mf <- sigfit_coefs(p[1],p[2],x=x)
+      ml_Sx <- mf$Sx
+      ml_Px <- mf$Px
+        
+        
       # Coefficients matrix
       cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
                       c(ml_Px, boot_ci(boot_Px, coverage)))
@@ -242,14 +239,10 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # move to subfunction
     if(model == "Weibull"){
     
-      # guess starting values
-      if(is.null(startvalues)){
-        pxstart <- (1-x/100)*(max(P) - min(P))
-        Sh <- 15
-      } else {
-        pxstart <- startvalues$Px
-        Sh <- startvalues$S
-      }
+      # guess starting values from sigmoidal
+      f <- do_sigmoid_fit(Data, boot=FALSE)
+      p <- coef(f$fit)
+      browser()
       
       # fit
       Data$X <- x
@@ -392,3 +385,11 @@ do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
 }
 
 
+# Calculate Sx, Px, given log-linear fit of sigmoidal model
+sigfit_coefs <- function(c1,c2,x){
+  b <- c1 / c2
+  Sx <- 100 * c2/4
+  Px <- ab_to_px(c2, b, x)
+  
+  list(Px=unname(Px), Sx=unname(Sx))
+}
