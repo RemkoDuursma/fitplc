@@ -242,7 +242,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       # guess starting values from sigmoidal
       f <- do_sigmoid_fit(Data, boot=FALSE)
       p <- coef(f$fit)
-      browser()
+      sp <- sigfit_coefs(p[1],p[2],x=x)
       
       # fit
       Data$X <- x
@@ -251,7 +251,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       # Weighted NLS
       if(!is.null(W)){
           nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
-                      data=Data, start=list(SX=Sh, PX=pxstart),
+                      data=Data, start=list(SX=sp$Sx, PX=sp$Px),
                       weights=W)
           if(fitran){
             nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
@@ -266,7 +266,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         
       # Ordinary NLS
         nlsfit <- nls(relK ~ fweibull(P,SX,PX,X),
-                      data=Data, start=list(SX=Sh, PX=pxstart))
+                      data=Data, start=list(SX=sp$Sx, PX=sp$Px))
         if(fitran){
           nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
                           fixed=list(SX ~ 1, PX ~ 1),
@@ -282,11 +282,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       if(bootci){
         if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
         p <- predict_nls(nlsfit, xvarname="P", interval="confidence", data=Data, 
-                         startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
+                         startList=list(SX=sp$Sx, PX=sp$Px), weights=W, nboot=nboot)
         if(!quiet)message("done.")
       } else {
         p <- predict_nls(nlsfit, xvarname="P", interval="none", data=Data, 
-                         startList=list(SX=Sh, PX=pxstart), weights=W, nboot=nboot)
+                         startList=list(SX=sp$Sx, PX=sp$Px), weights=W, nboot=nboot)
       }
       
       # Predictions at innermost random effect
