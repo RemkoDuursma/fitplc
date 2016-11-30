@@ -92,10 +92,12 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   if(x$fitran && plotrandom){
     
     ng <- length(x$prednlme)
-    for(i in 1:ng){
-      x$prednlme[[i]]$y <- relk_to_plc(x$prednlme[[i]]$y)
+    if(what=="PLC"){
+      for(i in 1:ng){
+        x$prednlme[[i]]$y <- relk_to_plc(x$prednlme[[i]]$y)
+      }
+      x$prednlmefix$y <- relk_to_plc(x$prednlmefix$y)
     }
-    x$prednlmefix$y <- relk_to_plc(x$prednlmefix$y)
   }
 
   if(!add){
