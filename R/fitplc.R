@@ -118,8 +118,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    quiet=FALSE,
                    ...){
 
-                   
-  
     # sigmoid_lm
     # sigmoid_lme
     # weibull_nls
@@ -185,56 +183,78 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     
     if(model == "sigmoidal"){
       
-      f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
-      
-      cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
-      boot_Sx <- cf$Sx  
-      boot_Px <- cf$Px
-      
-      p <- coef(f$fit)
-      mf <- sigfit_coefs(p[1],p[2],x=x)
-      ml_Sx <- mf$Sx
-      ml_Px <- mf$Px
+      if(!fitran){
+        f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
         
-      # Coefficients matrix
-      cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
-                      c(ml_Px, boot_ci(boot_Px, coverage)))
+        cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
+        boot_Sx <- cf$Sx  
+        boot_Px <- cf$Px
+        
+        p <- coef(f$fit)
+        mf <- sigfit_coefs(p[1],p[2],x=x)
+        ml_Sx <- mf$Sx
+        ml_Px <- mf$Px
+          
+        # Coefficients matrix
+        cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
+                        c(ml_Px, boot_ci(boot_Px, coverage)))
+        
+        dimnames(cipars) <- list(c("SX","PX"), 
+                                 c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
+        
+        # f must be component with 'fit' and 'boot'
+        pred <- get_boot_pred_sigmoid(f, Data, coverage)
+        
+        
       
-      dimnames(cipars) <- list(c("SX","PX"), 
-                               c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
-      
-      # f must be component with 'fit' and 'boot'
-      pred <- get_boot_pred_sigmoid(f, Data, coverage)
-      
-      if(fitran){
-        lmefit <- lme(logPLC ~ P,
-                        random= ~P|G,
-                        weights=W,
-                        data=Data)
+      } else {
+        
+        
+        #--> to subfunction
+        # This is necessary - might have to revisit this method.
+        #Data$PLCf <- pmax(0.1, pmin(99.9, Data$PLC))
+        fit <- do_sigmoid_lme_fit(Data, W)
+        
+        Px_ci <- deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
+        Sx_ci <- deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
+        cipars <- rbind(Sx_ci, Px_ci)
+        cipars$SE <- NULL
+        names(cipars)[2:3] <- c("Norm - 2.5%","Norm - 97.5%")
+        rownames(cipars) <- c("SX","PX")
+        
+        #--> to here
+        
+        predran <- lapply(split(Data, Data$G), function(x){
+          
+          ps <- seq_within(x$minP, n=101)
+          newdat <- data.frame(minP=ps, G=unique(x$G))
+          
+          list(x=-ps, fit=sigmoid_untrans(unname(predict(fit, newdat)))) 
+        })
+        
+        ps <- seq_within(Data$minP, n=101)
+        newdat <- data.frame(minP=ps, X=x)
+        pred <- list(x=-ps, fit=predict(fit, newdat, level=0), ran=predran)
+        pred$fit <- sigmoid_untrans(pred$fit)
+        
       }
       
-      l <- list()
-      l$fit <- f$fit
+      l <- list(fit=fit, pred=pred, cipars=cipars, data=Data, x=x, Kmax=1)
       
-      l$lmefit <- if(fitran)lmefit else NA
-      l$b <- f$boot
-      l$model <- model
-      l$data <- Data[,c("P","PLC","relK")]
-      l$cipars <- cipars
+      # l$lmefit <- fit
+      # l$b <- f$boot
+      # l$model <- model
+      # l$data <- Data[,c("P","PLC","relK")]
+      # l$cipars <- cipars
+      # 
+      # # boot CI - used in plotting
+      # l$pred <- pred
+      # 
+      # l$condfit <- condfit
+      # l$fitran <- fitran
+      # l$bootci <- TRUE
       
-      # large sample CI - stored but not yet used anywhere
       
-    
-      # boot CI - used in plotting
-      l$pred <- pred
-      
-      l$condfit <- condfit
-      l$fitran <- fitran
-      l$bootci <- TRUE
-      l$Kmax <- 1
-      l$x <- x
-      class(l) <- "plcfit"
-      return(l)
     }
 
     
@@ -294,18 +314,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       # Predictions at innermost random effect
       if(fitran){
         
-        d <- split(Data, Data$G)
-        pm <- list()
-        for(i in 1:length(d)){
-          ps <- seq(min(d[[i]]$P),max(d[[i]]$P),length=101)
-          newdat <- data.frame(P=ps, 
-                               G=unique(d[[i]]$G), X=x)
-          y <- predict(nlmefit, newdat)
-          pm[[i]] <- data.frame(x=ps, y=y) 
-        }
-        ps <- seq(min(P),max(P),length=101)
-        newdat <- data.frame(P=ps, X=x)
-        pmf <- data.frame(x=ps, y=predict(nlmefit, newdat, level=0))
+        # pm: innermost random effects (list)
+        # pmf : fixed effects predictions
         
       } else {
         pm <- NA
@@ -356,13 +366,14 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$Kmax <- Kmax
       l$nboot <- nboot
       
-      class(l) <- "plcfit"
-      
-      return(l)
+
     }
     
-    
-    
+    class(l) <- "plcfit"
+    l$condfit <- condfit
+    l$fitran <- fitran
+    l$bootci <- bootci
+    return(l)
 }    
 
 
@@ -370,10 +381,12 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
 do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
   
   # This is necessary - might have to revisit this method.
-  data$PLCf <- pmax(0.1, pmin(99.9, data$PLC))
+  #data$PLCf <- pmax(0.1, pmin(99.9, data$PLC))
   
+  data <- subset(data, PLC < 100 & PLC > 0)
+
   # Transformation as per P&vW
-  data$logPLC <- log(100/data$PLCf - 1)
+  data$logPLC <- log(100/data$PLC - 1)
   
   if(!is.null(W)){
     lmfit <- lm(logPLC ~ minP, data=data, weights=W)
@@ -385,6 +398,21 @@ do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
   
   return(list(fit=lmfit, boot=br))
 }
+
+do_sigmoid_lme_fit <- function(data, W=NULL){
+  
+  data <- subset(data, PLC > 0 & PLC < 100)
+  
+  data$logPLC <- log(100/data$PLC - 1)
+  
+  fit <- lme(logPLC ~ minP,
+             random= ~1|G,
+             weights=W,
+             data=data)
+  
+return(fit)
+}
+
 
 
 # Calculate Sx, Px, given log-linear fit of sigmoidal model

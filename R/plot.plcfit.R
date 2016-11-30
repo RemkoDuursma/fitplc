@@ -91,12 +91,12 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   
   if(x$fitran && plotrandom){
     
-    ng <- length(x$prednlme)
+    ng <- length(x$pred$ran)
     if(what=="PLC"){
       for(i in 1:ng){
-        x$prednlme[[i]]$y <- relk_to_plc(x$prednlme[[i]]$y)
+        x$pred$ran[[i]]$fit <- relk_to_plc(x$pred$ran[[i]]$fit)
       }
-      x$prednlmefix$y <- relk_to_plc(x$prednlmefix$y)
+      x$pred$fit <- relk_to_plc(x$pred$fit)
     }
   }
 
@@ -138,28 +138,23 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   }
   
   if(plotrandom){
-    for(i in 1:length(x$prednlme)){
-      with(x$prednlme[[i]], lines(x,multiplier * y,type='l',col=linecol))
+    for(i in 1:length(x$pred$ran)){
+      with(x$pred$ran[[i]], lines(x, multiplier * fit, type='l', col=linecol))
     }  
-    with(x$prednlmefix, lines(x,multiplier * y,type='l',lwd=2, col=linecol2))
+    with(x$pred, lines(x, multiplier * fit, type='l', lwd=2, col=linecol2))
   }
   
   if(plotPx){
-    if(!x$fitran){
-      px <- coef(x)["PX","Estimate"]
-      
-      # !! simplify and write warning
-      if(selines == "bootstrap" && any(grepl("Boot", colnames(coef(x))))){
-        px_ci <- coef(x)["PX",c("Boot - 2.5%","Boot - 97.5%")]
-      } else {
-        px_ci <- coef(x)["PX",c("Norm - 2.5%","Norm - 97.5%")]
-      }
-      
-    } else {
-      px <- fixef(x$nlmefit)["PX"]
-      px_ci <- x$cinlme[2,]
-    }
     
+    px <- coef(x)["PX","Estimate"]
+    
+    # !! simplify and write warning
+    if(selines == "bootstrap" && any(grepl("Boot", colnames(coef(x))))){
+      px_ci <- coef(x)["PX",c("Boot - 2.5%","Boot - 97.5%")]
+    } else {
+      px_ci <- coef(x)["PX",c("Norm - 2.5%","Norm - 97.5%")]
+    }
+      
     abline(v=px, col=pxlinecol)
     if(selines != "none")abline(v=px_ci, col=pxlinecol, lty=5)
     

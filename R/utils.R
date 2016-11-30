@@ -14,3 +14,12 @@ boot_ci <- function(b, coverage){
   quantile(b, probs=c(a, 1-a))
   
 }
+
+
+seq_within <- function(v, n=101){
+  
+  Min <- min(v, na.rm=TRUE)
+  Max <- max(v, na.rm=TRUE)
+  seq(Min,Max,length=n)
+  
+}
