@@ -5,11 +5,11 @@ library(fitplc)
 
 dpap <- subset(stemvul, Species == "dpap")
 
-Xval <- 50
+Xval <- 86
 
 f <- fitplc(dpap, x=Xval)
 g <- fitplc(dpap, bootci=FALSE, x=Xval)
-h <- fitplc(dpap, model="sigm", x=Xval)
+h <- fitplc(dpap, model="sigm", x=50)
 
 k <- fitplc(stemvul, random=Species, x=Xval)
 m <- fitplc(stemvul, random=Species, model="sigm", x=Xval)
