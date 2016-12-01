@@ -12,7 +12,6 @@
 #' @param random Variable that specified random effects (unquoted; must be present in dfr).
 #' @param x If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).
 #' @param model At the moment, only 'Weibull' is allowed.
-#' @param startvalues A list of starting values. If set to NULL, \code{fitplc} will attempt to guess starting values.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
 #' @param nboot The number of bootstrap replicates (only relevant when \code{bootci=TRUE}).
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
@@ -30,8 +29,9 @@
 #' @importFrom nlme fixef
 #' @importFrom nlme nlme
 #' @importFrom nlme intervals
-
+#' @importFrom car deltaMethod
 #' @rdname fitplc
+#' 
 #' @examples
 #'
 #' # We use the built-in example dataset 'stemvul' in the examples below. See ?stemvul.
@@ -109,8 +109,7 @@
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
-                   model=c("Weibull","sigmoidal"), 
-                   #startvalues=list(Px=3, S=20), 
+                   model=c("weibull","sigmoidal"), 
                    x=50,
                    coverage=0.95,
                    bootci=TRUE,
@@ -129,7 +128,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # predictions fixed effect, confidence interval (lwr,upr)
     # predictions innermost random effect
   
-    model <- match.arg(model)
+    model <- match.arg(tolower(model))
   
     # Find out if called from fitcond.
     mc <- names(as.list(match.call()))
@@ -191,6 +190,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         boot_Px <- cf$Px
         
         p <- coef(f$fit)
+        browser()
         mf <- sigfit_coefs(p[1],p[2],x=x)
         ml_Sx <- mf$Sx
         ml_Px <- mf$Px
@@ -219,8 +219,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         Sx_ci <- deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
         cipars <- rbind(Sx_ci, Px_ci)
         cipars$SE <- NULL
-        names(cipars)[2:3] <- c("Norm - 2.5%","Norm - 97.5%")
-        rownames(cipars) <- c("SX","PX")
+        dimnames(cipars) <- list(c("SX","PX"),
+		                         c("Estimate","Norm - 2.5%","Norm - 97.5%"))
         
         #--> to here
         
@@ -344,8 +344,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       
       
         if(bootci){
-          cisx <- quantile(p$boot[,"SX"], c(0.025,0.975))
-          cipx <- quantile(p$boot[,"PX"], c(0.025,0.975))
+          cisx <- quantile(pred$boot[,"SX"], c(0.025,0.975))
+          cipx <- quantile(pred$boot[,"PX"], c(0.025,0.975))
     
           bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
                              dimnames=list(c("SX","PX"),c("Boot - 2.5%","Boot - 97.5%")))
