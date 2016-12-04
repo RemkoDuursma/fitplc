@@ -1,28 +1,39 @@
 #' Fit a PLC curve
-#' @description This function fits the Weibull curve to measurements of stem or leaf conductivity 
-#' measurements at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc} function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic  conductance data, for example), use the \code{fitcond} function. See Details and Examples for more information on how to use these functions. 
+#' @description Fit a curve to measurements of stem or leaf conductivity at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc} function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic  conductance data, for example), use the \code{fitcond} function. You can choose to either fit the Weibull function (the default), or the sigmoidal-exponential model. See Details and Examples for more information on how to use these functions. 
 #' 
-#' It is also possible to fit multiple curves at once, for example one for each species or site, 
-#' with the \code{fitplcs} and \code{fitconds} functions.
+#' It is also possible to fit multiple curves at once, for example one for each species or site, with the \code{fitplcs} and \code{fitconds} functions. This is useful when you have data for multiple curves organized in one file.
 #' 
+#' Random effects may be incorporated via the \code{random} argument (see Examples), in which case \code{nlme} will be used (in case of the Weibull) or \code{lme} (in case of the sigmoidal model).
+#'
 #' See \code{\link{plot.plcfit}} for documentation on plotting methods for the fitted objects, and the examples below.
+#'
 #' @param dfr A dataframe that contains water potential and plc or conductivity/conductance data.
 #' @param varnames A vector specifying the names of the PLC and water potential data (see Examples).
-#' @param weights A variable used as weights in weighted non-linear regression that must be present in the dataframe (unquoted, see examples).
-#' @param random Variable that specified random effects (unquoted; must be present in dfr).
+#' @param weights A variable used as weights that must be present in the dataframe (unquoted, see examples).
+#' @param random Variable that specifies random effects (unquoted; must be present in dfr).
 #' @param x If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).
 #' @param model Either 'Weibull' or 'sigmoidal'. See Details.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
-#' @param nboot The number of bootstrap replicates (only relevant when \code{bootci=TRUE}).
+#' @param nboot The number of bootstrap replicates used for calculating confidence intervals.
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
 #' @param Kmax Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.
 #' @param WP_Kmax Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.
-#' @details If a variable with the name Weights is present in the dataframe, 
-#' this variable will be used as the \code{weights} argument in \code{\link{nls}} to perform 
-#' weighted non-linear regression. See the final example on how to use this.
+#'
+#' @details 
+#' \strong{Models} - 
+#' The Weibull model is fit as reparameterized by Ogle et al. (2009), using non-linear regression (\code{\link{nls}}) or a non-linear mixed-effects model if a random effect is present (\code{\link{nlme}}). The sigmoidal-exponential model follows the 
+#' specification by Pammenter and van Willigen (1998) : PLC is log-transformed so a linear fit can be obtained with \code{\link{lm}} or \code{\link{lme}} in the presence of a random effect. 
+#' Parameters estimated are PX (water potential at which X% conductivity is lost) and SX 
+#' (slope of PLC vs. water potential at P50, MPa per percent). For the sigmoidal model, SX is a parameter combination (and so is PX when x is not 50), so only bootstrap estimates of the confidence intervals are given. 
+#'
+#' \strong{Bootstrap} - 
+#' We recommend, where possible, to use the bootstrapped confidence intervals. For the Weibull model, this is only possible when a sufficiently large sample size is available for a single curve (otherwise too many nls fits will fail). For the sigmoidal model, however, bootstrap is always possible and will always be employed (it cannot be turned off).
+#'
+#' \strong{Weights} - 
+#' If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument to perform weighted (non-linear) regression. See Examples on how to use this.
 #' 
-#' If the \code{random} argument specifies a factor variable present in the dataframe, random effects will 
-#' be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects.
+#' \strong{Random effects} - 
+#' If the \code{random} argument specifies a factor variable present in the dataframe, random effects will be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects. For both the Weibull model and the sigmoidal model, only the random intercept terms are estimated (i.e. \code{random=~1|group}).
 #'
 #' A plot method is available for the fitted object, see Examples below.
 #' @export

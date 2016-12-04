@@ -7,10 +7,10 @@
 \usage{
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
-  add = FALSE, multiplier = NULL, selines = c("parametric", "bootstrap",
+  add = FALSE, multiplier = NULL, selines = c("bootstrap", "parametric",
   "none"), plotrandom = FALSE, linecol = "black", linecol2 = "blue",
   pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
-  what = c("relk", "embol"), ...)
+  what = c("relk", "PLC", "embol"), ...)
 
 \method{plot}{manyplcfit}(x, what = c("relk", "embol"), onepanel = FALSE,
   linecol = NULL, pointcol = NULL, pch = 19, legend = TRUE,
@@ -49,7 +49,7 @@
 
 \item{citype}{Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.}
 
-\item{what}{Either 'relk' or 'embol'; it will plot either relative conductivity or percent embolism.}
+\item{what}{Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).}
 
 \item{onepanel}{For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)}
 
