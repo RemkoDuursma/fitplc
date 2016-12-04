@@ -38,3 +38,19 @@ coef(m0)
 
 
 
+fc1 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"))
+plot(fc1)
+coef(fc1)
+summary(fc1)
+
+fc2 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), model="sigmoid")
+plot(fc2)
+coef(fc2)
+summary(fc2)
+
+
+
+
+
+
+

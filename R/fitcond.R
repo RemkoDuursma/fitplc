@@ -20,9 +20,13 @@ fitcond <- function(dfr, varnames = c(K="K", WP="MPa"),
   K <- dfr[[varnames["K"]]]
   P <- dfr[[varnames["WP"]]]
   
+  # Need absolute values of water potential
+  if(mean(P) < 0)P <- -P
+  if(WP_Kmax < 0)WP_Kmax <- -WP_Kmax
+  
   # Calculate Kmax based on WP threshold
   if(is.null(Kmax)){
-    Kmax <- mean(K[P > WP_Kmax], na.rm=TRUE)
+    Kmax <- mean(K[P < WP_Kmax], na.rm=TRUE)
   }
       
   # Now calculate PLC
