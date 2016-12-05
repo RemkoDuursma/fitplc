@@ -61,3 +61,8 @@ abline(h=0.5)
 coef(h2)
 
 
+pira <- read.csv("c:/repos/fitplcpaper/data/Pinus_radiata_centrifuge.csv")
+f4 <- fitplc(pira, varnames=c(PLC="PLC",WP="Psi"),
+             random=Rep)
+
+

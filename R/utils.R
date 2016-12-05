@@ -3,9 +3,6 @@ relk_to_plc <- function(relk)100 - 100*relk
 
 plc_to_relk <- function(plc)(100 - plc)/100
 
-# WRONG and needs fixing
-#ab_to_px <- function(a,b,x)(log(100/x - 1) + b)/a
-#ab_to_px <- function(a,b,x)b
 ab_to_px <- function(a,b,x)(log(1/(1 - x/100) - 1)/a) + b
 
 sigmoid_untrans <- function(x)(100 - 100/(exp(x) + 1))/100

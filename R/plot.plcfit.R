@@ -148,8 +148,11 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     
     px <- coef(x)["PX","Estimate"]
     
+    haveboot <- any(grepl("Boot", colnames(coef(x))))
+    if(selines == "bootstrap" && !haveboot)selines <- "parametric"
+    
     # !! simplify and write warning
-    if(selines == "bootstrap" && any(grepl("Boot", colnames(coef(x))))){
+    if(selines == "bootstrap"){
       px_ci <- coef(x)["PX",c("Boot - 2.5%","Boot - 97.5%")]
     } else if(selines == "parametric"){
       px_ci <- coef(x)["PX",c("Norm - 2.5%","Norm - 97.5%")]
