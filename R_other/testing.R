@@ -50,7 +50,14 @@ summary(fc2)
 
 
 
+h1 <- fitplcs(stemvul, group="Species")
+plot(h1, onepanel=TRUE, selines="none", plotci=FALSE)
+abline(h=0.5)
+coef(h1)
 
-
+h2 <- fitplcs(stemvul, group="Species", model="sigmoid")
+plot(h2, onepanel=TRUE, selines="none", plotci=FALSE)
+abline(h=0.5)
+coef(h2)
 
 

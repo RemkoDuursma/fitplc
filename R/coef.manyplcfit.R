@@ -1,11 +1,11 @@
 #'@export
 coef.manyplcfit <- function(object, ...){
   
-  x <- lapply(object,coef)
-  vf <- function(m)as.vector(t(m))
-  dfr <-  as.data.frame(do.call(rbind,lapply(x,vf)))
-  names(dfr) <- c("S","S_SE","S_lower","S_upper",
-                  "Px","Px_SE","P50_lower","P50_upper")
+  x <- do.call(rbind, lapply(object,coef))
+  rn <- rownames(x)
+  rownames(x) <- NULL
+  dfr <- cbind(data.frame(Group=rep(names(object), each=2), Parameter=rn),
+               as.data.frame(x))
   
   return(dfr)
 }
