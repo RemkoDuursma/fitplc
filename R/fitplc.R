@@ -3,7 +3,7 @@
 #' 
 #' It is also possible to fit multiple curves at once, for example one for each species or site, with the \code{fitplcs} and \code{fitconds} functions. This is useful when you have data for multiple curves organized in one file.
 #' 
-#' Random effects may be incorporated via the \code{random} argument (see Examples), in which case \code{nlme} will be used (in case of the Weibull) or \code{lme} (in case of the sigmoidal model).
+#' Random effects may be incorporated via the \code{random} argument (see Examples), in which case \code{nlme} will be used (in case of the Weibull), or \code{lme} (in case of the sigmoidal model).
 #'
 #' See \code{\link{plot.plcfit}} for documentation on plotting methods for the fitted objects, and the examples below.
 #'
@@ -13,6 +13,7 @@
 #' @param random Variable that specifies random effects (unquoted; must be present in dfr).
 #' @param x If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).
 #' @param model Either 'Weibull' or 'sigmoidal'. See Details.
+#' @param startvalues Obsolete - starting values for Weibull now estimated from sigmoidal model fit.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
 #' @param nboot The number of bootstrap replicates used for calculating confidence intervals.
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
@@ -27,8 +28,11 @@
 #' (slope of PLC vs. water potential at P50, MPa per percent). For the sigmoidal model, SX is a parameter combination (and so is PX when x is not 50), so only bootstrap estimates of the confidence intervals are given. 
 #'
 #' \strong{Bootstrap} - 
-#' We recommend, where possible, to use the bootstrapped confidence intervals. For the Weibull model, this is only possible when a sufficiently large sample size is available for a single curve (otherwise too many nls fits will fail). For the sigmoidal model, however, bootstrap is always possible and will always be employed (it cannot be turned off).
-#'
+#' We recommend, where possible, to use the bootstrapped confidence intervals for inference (use at least ca 1000 resamples). For the Weibull model, this is only possible when a sufficiently large sample size is available for a single curve (otherwise too many nls fits will fail). For the sigmoidal model, however, bootstrap is always possible and will always be employed (it cannot be turned off).
+#' 
+#' \strong{Confidence intervals} - 
+#' Calculation of confidence intervals (CI) depends on the method chosen. For the Weibull model, the CI based on profiling ('Normal approximation') is always performed, and a non-parametric bootstrap when \code{bootci=TRUE}. Both are output in \code{coef}, and the bootstrap CI is used in plotting unless otherwise specified (see \code{\link{plot.plcfit}}). When a random effect is specified (for the Weibull model), the CI is calculated with \code{\link{intervals.lme}}. For the sigmoidal model, PX and SX are functions of parameters of a linearized fit, and we thus always use the bootstrap when no random effect is present (it cannot be switched off). When a random effect is included in the sigmoidal model, we use \code{\link{deltaMethod}} from the \code{car} package.
+#' 
 #' \strong{Weights} - 
 #' If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument to perform weighted (non-linear) regression. See Examples on how to use this.
 #' 
@@ -46,11 +50,13 @@
 #' @examples
 #'
 #' # We use the built-in example dataset 'stemvul' in the examples below. See ?stemvul.
+#' # Most examples will fit the Weibull model (the default); try running some of the examples
+#' # with 'model="sigmoidal"' and compare the results.
 #'   
 #' # 1. Fit one species (or fit all, see next example)
 #' dfr1 <- subset(stemvul, Species =="dpap")
 #' 
-#' # Make fit. Store results in object 'pfit'
+#' # Fit Weibull model. Store results in object 'pfit'
 #' # 'varnames' specifies the names of the 'PLC' variable in the dataframe,
 #' # and water potential (WP). 
 #' # In this example, we use only 50 bootstrap replicates but recommend you set this
@@ -69,6 +75,13 @@
 #' 
 #' # Get the coefficients of the fit.
 #' coef(pfit)
+#' 
+#' # Repeat for the sigmoidal model
+#' # Note that varnames specification above is the same as the default, so it 
+#' # can be omitted.
+#' pfit2 <- fitplc(dfr1, model="sigmoid")
+#' plot(pfit2)
+#' coef(pfit2)
 #' 
 #' # 2. Fit all species in the dataset.
 #' # Here we also set the starting values (which is sometimes needed).
@@ -126,14 +139,25 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    bootci=TRUE,
                    nboot=999,
                    quiet=TRUE,
+                   startvalues=NULL,
                    ...){
-
+    
+    
+    if(!is.null(startvalues)){
+      if(!quiet)warning("startvalues ignored - starting values now estimated from sigmoidal fit.")
+    }
+  
     # sigmoid_lm
     # sigmoid_lme
     # weibull_nls
     # weibull_nlme
   
     model <- match.arg(model)
+    
+    if(!bootci && model == "sigmoidal"){
+      warning("Cannot switch off bootstrap with sigmoidal model - ignored.")
+      bootci <- TRUE
+    }
   
     # Find out if called from fitcond.
     mc <- names(as.list(match.call()))
@@ -187,6 +211,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     if(model == "sigmoidal"){
       
       if(!fitran){
+        # without random effect
         f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
         
         cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
@@ -212,8 +237,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         fit <- f$fit
         
       
-      } else {
         
+      } else {
+        # with random effect
         
         #--> to subfunction
         # This is necessary - might have to revisit this method.
@@ -221,6 +247,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         fit <- do_sigmoid_lme_fit(Data, W)
         
         Px_ci <- deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
+        
+        # deltaMethod not needed here but convenient and equivalent
         Sx_ci <- deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
         cipars <- rbind(Sx_ci, Px_ci)
         cipars$SE <- NULL
@@ -245,21 +273,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       }
       
       l <- list(fit=fit, pred=pred, cipars=cipars, data=Data, x=x, Kmax=1)
-      
-      # l$lmefit <- fit
-      # l$b <- f$boot
-      # l$model <- model
-      # l$data <- Data[,c("P","PLC","relK")]
-      # l$cipars <- cipars
-      # 
-      # # boot CI - used in plotting
-      # l$pred <- pred
-      # 
-      # l$condfit <- condfit
-      # l$fitran <- fitran
-      # l$bootci <- TRUE
-      
-      
+
     }
 
     

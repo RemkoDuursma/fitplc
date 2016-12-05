@@ -12,7 +12,8 @@ fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
 
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = c("Weibull", "sigmoidal"), x = 50,
-  coverage = 0.95, bootci = TRUE, nboot = 999, quiet = TRUE, ...)
+  coverage = 0.95, bootci = TRUE, nboot = 999, quiet = TRUE,
+  startvalues = NULL, ...)
 
 fitplcs(dfr, group, ...)
 
@@ -41,6 +42,8 @@ fitconds(dfr, group, ...)
 
 \item{quiet}{Logical (default FALSE), if TRUE, don't print any messages.}
 
+\item{startvalues}{Obsolete - starting values for Weibull now estimated from sigmoidal model fit.}
+
 \item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
 
 \item{\dots}{Further parameters passed to \code{fitplc}.}
@@ -50,7 +53,7 @@ Fit a curve to measurements of stem or leaf conductivity at various water potent
 
 It is also possible to fit multiple curves at once, for example one for each species or site, with the \code{fitplcs} and \code{fitconds} functions. This is useful when you have data for multiple curves organized in one file.
 
-Random effects may be incorporated via the \code{random} argument (see Examples), in which case \code{nlme} will be used (in case of the Weibull) or \code{lme} (in case of the sigmoidal model).
+Random effects may be incorporated via the \code{random} argument (see Examples), in which case \code{nlme} will be used (in case of the Weibull), or \code{lme} (in case of the sigmoidal model).
 
 See \code{\link{plot.plcfit}} for documentation on plotting methods for the fitted objects, and the examples below.
 }
@@ -62,7 +65,10 @@ Parameters estimated are PX (water potential at which X% conductivity is lost) a
 (slope of PLC vs. water potential at P50, MPa per percent). For the sigmoidal model, SX is a parameter combination (and so is PX when x is not 50), so only bootstrap estimates of the confidence intervals are given. 
 
 \strong{Bootstrap} - 
-We recommend, where possible, to use the bootstrapped confidence intervals. For the Weibull model, this is only possible when a sufficiently large sample size is available for a single curve (otherwise too many nls fits will fail). For the sigmoidal model, however, bootstrap is always possible and will always be employed (it cannot be turned off).
+We recommend, where possible, to use the bootstrapped confidence intervals for inference (use at least ca 1000 resamples). For the Weibull model, this is only possible when a sufficiently large sample size is available for a single curve (otherwise too many nls fits will fail). For the sigmoidal model, however, bootstrap is always possible and will always be employed (it cannot be turned off).
+
+\strong{Confidence intervals} - 
+Calculation of confidence intervals (CI) depends on the method chosen. For the Weibull model, the CI based on profiling ('Normal approximation') is always performed, and a non-parametric bootstrap when \code{bootci=TRUE}. Both are output in \code{coef}, and the bootstrap CI is used in plotting unless otherwise specified (see \code{\link{plot.plcfit}}). When a random effect is specified (for the Weibull model), the CI is calculated with \code{\link{intervals.lme}}. For the sigmoidal model, PX and SX are functions of parameters of a linearized fit, and we thus always use the bootstrap when no random effect is present (it cannot be switched off). When a random effect is included in the sigmoidal model, we use \code{\link{deltaMethod}} from the \code{car} package.
 
 \strong{Weights} - 
 If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument to perform weighted (non-linear) regression. See Examples on how to use this.
@@ -75,11 +81,13 @@ A plot method is available for the fitted object, see Examples below.
 \examples{
 
 # We use the built-in example dataset 'stemvul' in the examples below. See ?stemvul.
+# Most examples will fit the Weibull model (the default); try running some of the examples
+# with 'model="sigmoidal"' and compare the results.
   
 # 1. Fit one species (or fit all, see next example)
 dfr1 <- subset(stemvul, Species =="dpap")
 
-# Make fit. Store results in object 'pfit'
+# Fit Weibull model. Store results in object 'pfit'
 # 'varnames' specifies the names of the 'PLC' variable in the dataframe,
 # and water potential (WP). 
 # In this example, we use only 50 bootstrap replicates but recommend you set this
@@ -98,6 +106,13 @@ plot(pfit, what="embol")
 
 # Get the coefficients of the fit.
 coef(pfit)
+
+# Repeat for the sigmoidal model
+# Note that varnames specification above is the same as the default, so it 
+# can be omitted.
+pfit2 <- fitplc(dfr1, model="sigmoid")
+plot(pfit2)
+coef(pfit2)
 
 # 2. Fit all species in the dataset.
 # Here we also set the starting values (which is sometimes needed).

@@ -1,25 +1,33 @@
 Fit vulnerability curves in R
 --------------------------------------
 
-This page describes the `fitplc` package, which can be used to fit PLC curves.
-At the moment, simply fits the Weibull curve as reparameterized by Ogle et al. (2009),
-computes confidence intervals for P50 (using the bootstrap), and makes a standard plot of 
-'relative conductivity' or the 'percentage embolized' vs. water potential (including a bootstrap 95% CI of the fit and the location of the P50).
+This page describes the `fitplc` package, which can be used to fit curves to measurements of plant stem, leaf or root conductivity (or conductance) at varying water potentials (so called 'PLC curves'). 
+The package either fits the Weibull curve as reparameterized by Ogle et al. (2009), or a sigmoidal model proposed by Pammenter and van Willigen (1998). 
+
+Calculate confidence intervals for the parameters (e.g., P50, slope at P50) (using the bootstrap or normal approximations), make standard plots of 'relative conductivity' or the 'percentage embolized' vs. water potential (including a bootstrap 95% CI of the fit and the location of the P50).
 
 Please read `?fitplc` for more instructions, and the examples on that page.
 
-More features will be added soon. To let me know which features should be implemented first, please submit an 'Issue', look in the menu above.
+To report bugs or suggest new features, please [open a new issue by following this link](https://bitbucket.org/remkoduursma/fitplc/issues/new).
+
 
 ## Installation instructions
 
-To install `fitplc`, use this command in R:
+The `fitplc` package is now on CRAN, so just do
+
+```
+install.packages("fitplc")
+library(fitplc)
+```
+
+To install the development version, use this command:
 ```
 library(devtools)
 install_bitbucket("remkoduursma/fitplc")
 library(fitplc)
 ```
 
-Windows users must have Rtools installed for this to work (http://cran.r-project.org/bin/windows/Rtools/) (Mac users should be OK).
+Windows users must have [Rtools](http://cran.r-project.org/bin/windows/Rtools/) installed for this to work.
 
 
 ## Example
