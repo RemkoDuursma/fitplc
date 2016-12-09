@@ -382,7 +382,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$cipars <- cipars
       l$data <- data.frame(P=P, PLC=plc, relK=relK)
       l$x <- x
-      l$model <- model
       l$fitran <- fitran
         
       l$bootci <- bootci
@@ -397,6 +396,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     l$condfit <- condfit
     l$fitran <- fitran
     l$bootci <- bootci
+    l$model <- model
     return(l)
 }    
 

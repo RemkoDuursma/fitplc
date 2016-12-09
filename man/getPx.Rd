@@ -4,16 +4,17 @@
 \alias{getPx}
 \title{Extract Px from fitted objects}
 \usage{
-getPx(fit, x = 50)
+getPx(object, x = 50)
 }
 \arguments{
-\item{fit}{Object returned by \code{\link{fitplc}}}
+\item{object}{Object returned by \code{\link{fitplc}}}
 
 \item{x}{The x in Px, that is, if P50 should be returned, x=50.}
 }
 \description{
-In cases where fitplc does not converge (as is common when x=88 or other large/small values), this
-function can be used to extract esimates of Px from a fitted object. See examples. Note that the CI is approximate, and is based on the bootstrap resampling performed by fitplc. This function only works when \code{bootci=TRUE} when the curve was fit, luckily this is the default behaviour (see also examples below).
+Extract esimates of Px from an object returned by \code{\link{fitplc}}. This allows extraction of estimates of P88 or other values when the fit estimated P50 (or other), for example. When the Weibull model is used, it is especially recommended to fit the P50 and estimate other points of the curve with \code{getPx}. 
+
+See examples for use of this function. Note that the confidence interval is based on the bootstrap resampling performed by \code{\link{fitplc}}. This function only works when \code{bootci=TRUE} when the curve was fit.
 }
 \details{
 Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). Or, perhaps better, just report the CI and not the SE.
