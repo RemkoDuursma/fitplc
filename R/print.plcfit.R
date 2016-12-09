@@ -10,7 +10,7 @@ print.plcfit <- function(x,...){
   if(x$fitran){
     cat("Random effects estimated for ",x$ranvar,"\n")
   }
-  cat("Parameters, SE, and 95% confidence interval:\n\n")
+  cat("Parameters and 95% confidence interval:\n\n")
   
   print(coef(x))
   cat("\n")
