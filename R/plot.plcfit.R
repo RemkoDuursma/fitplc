@@ -4,6 +4,7 @@
 #' @param ylim Optionally, Y-axis limits.
 #' @param pch Optionally, the plotting symbol (default = 19, filled circles)
 #' @param px_ci Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval) (formerly argument was called \code{selines})
+#' @param px_ci_label Logical (default TRUE), whether to write a label next to the CI for Px.
 #' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
 #' @param multiplier Multiply the scaled data (for plotting).
 #' @param x A fitted curve returned by \code{fitplc}
@@ -28,6 +29,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         multiplier=NULL,
                         px_ci=c("bootstrap","parametric","none"),
+                        px_ci_label=TRUE,
                         plotrandom=FALSE,
                         linecol="black",
                         linecol2="blue",
@@ -172,6 +174,15 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       nm <- switch(px_ci, bootstrap="Boot", parametric="Norm")
       px_ci <- coef(x)["PX",ci_names(nm,coverage=x$coverage)]
       abline(v=px_ci, col=pxlinecol, lty=5)
+      
+      if(px_ci_label){
+        lab <- paste(label_coverage(x$coverage),nm)
+        u <- par()$usr
+        dx <- (u[2] - u[1])/100
+        text(px_ci[2]+dx, u[3] + 0.95*(u[4] - u[3]),
+             lab, cex=0.5*par()$cex, pos=4)
+      }
+      
     }
     abline(v=px, col=pxlinecol)
       

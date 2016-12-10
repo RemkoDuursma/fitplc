@@ -10,8 +10,8 @@ library(fitplc)
 
 dpap <- subset(stemvul, Species == "dpap")
 
-Xval <- 72
-cover <- 0.81245
+Xval <- 50
+cover <- 0.95
 
 f <- fitplc(dpap, x=Xval, coverage=cover)
 g <- fitplc(dpap, bootci=FALSE, x=Xval, coverage=cover)
