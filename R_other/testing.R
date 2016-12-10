@@ -6,8 +6,9 @@ library(fitplc)
 dpap <- subset(stemvul, Species == "dpap")
 
 Xval <- 50
+cover <- 0.9
 
-f <- fitplc(dpap, x=Xval)
+f <- fitplc(dpap, x=Xval, coverage=cover)
 g <- fitplc(dpap, bootci=FALSE, x=Xval)
 h <- fitplc(dpap, model="sigm", x=50)
 

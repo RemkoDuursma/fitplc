@@ -18,7 +18,7 @@
 #' getPx(somefit, x=c(12,88))
 #' 
 #'@export
-getPx <- function(object, x=50){
+getPx <- function(object, x=50, coverage=0.95){
   
   getpx_fun <- function(object, x){
     X <- 1 - x/100

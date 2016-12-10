@@ -22,3 +22,8 @@ seq_within <- function(v, n=101){
   seq(Min,Max,length=n)
   
 }
+
+
+label_lowci <- function(coverage) sprintf("%s%%", 100*(1 - coverage)/2)
+label_upci <- function(coverage) sprintf("%s%%", 100*(coverage + (1 - coverage)/2))
+

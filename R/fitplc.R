@@ -229,7 +229,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                         c(ml_Px, boot_ci(boot_Px, coverage)))
         
         dimnames(cipars) <- list(c("SX","PX"), 
-                                 c("Estimate", "Boot - 2.5%","Boot - 97.5%"))
+                                 c("Estimate", 
+                                   sprintf("Boot - %s",label_lowci(coverage)),
+                                   sprintf("Boot - %s",label_upci(coverage))))
         
         # f must be component with 'fit' and 'boot'
         pred <- get_boot_pred_sigmoid(f, Data, coverage)
@@ -253,7 +255,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         cipars <- rbind(Sx_ci, Px_ci)
         cipars$SE <- NULL
         dimnames(cipars) <- list(c("SX","PX"),
-		                         c("Estimate","Norm - 2.5%","Norm - 97.5%"))
+		                         c("Estimate",
+		                           sprintf("Norm - %s",label_lowci(coverage)),
+		                           sprintf("Norm - %s",label_upci(coverage))))
         
         #--> to here
         
@@ -330,11 +334,15 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
           if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
           
           pred <- predict_nls(fit, xvarname="P", interval="confidence", data=Data, 
-                           startList=list(SX=sp$Sx, PX=sp$Px), weights=W, nboot=nboot)
+                           startList=list(SX=sp$Sx, PX=sp$Px), weights=W, 
+                           level=coverage,
+                           nboot=nboot)
           if(!quiet)message("done.")
         } else {
           pred <- predict_nls(fit, xvarname="P", interval="none", data=Data, 
-                           startList=list(SX=sp$Sx, PX=sp$Px), weights=W, nboot=nboot)
+                           startList=list(SX=sp$Sx, PX=sp$Px), 
+                           level=coverage,
+                           weights=W, nboot=nboot)
         }
       } else {
         
@@ -354,25 +362,30 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       
       if(!fitran){
         # ci on pars.
-        cipars <- try(suppressMessages(confint(fit)), silent=TRUE)
+        cipars <- try(suppressMessages(confint(fit, level=coverage)), silent=TRUE)
         if(inherits(cipars, "try-error")){
           cipars <- matrix(rep(NA,4),ncol=2)
         }
         cipars <- cbind(coef(fit), cipars)
-        dimnames(cipars) <- list(c("SX","PX"), c("Estimate", "Norm - 2.5%","Norm - 97.5%"))
-      
+        dimnames(cipars) <- list(c("SX","PX"), c("Estimate", 
+                                                 sprintf("Norm - %s",label_lowci(coverage)),
+                                                 sprintf("Norm - %s",label_upci(coverage))))
       
         if(bootci){
           cisx <- quantile(pred$boot[,"SX"], c(0.025,0.975))
           cipx <- quantile(pred$boot[,"PX"], c(0.025,0.975))
     
           bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
-                             dimnames=list(c("SX","PX"),c("Boot - 2.5%","Boot - 97.5%")))
+                             dimnames=list(c("SX","PX"),
+                                           c(sprintf("Boot - %s",label_lowci(coverage)),
+                                           sprintf("Boot - %s",label_upci(coverage)))))
           cipars <- cbind(cipars, bootpars)
         }               
       } else {
         cipars <- intervals(fit,which="fixed")$fixed[,c(2,1,3)]
-        colnames(cipars) <- c("Estimate","Norm - 2.5%","Norm - 97.5%")
+        colnames(cipars) <- c("Estimate",
+                              sprintf("Norm - %s",label_lowci(coverage)),
+                              sprintf("Norm - %s",label_upci(coverage)))
         attributes(cipars)$label <- NULL
       }
       
