@@ -6,7 +6,7 @@ print.manyplcfit <- function(x,...){
   
   cat("Object of class 'manyplcfit'\n")
   cat("------------------------------\n\n")
-  cat("Parameter estimates and 95% confidence intervals:\n\n")
+  cat(sprintf("Parameter estimates and %s%% confidence intervals:\n\n", label_coverage(x$coverage)))
   
   for(i in 1:length(x)){
     cat("Group: ",names(x)[i],"\n")

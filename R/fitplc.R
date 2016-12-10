@@ -370,8 +370,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                                                  sprintf("Norm - %s",label_upci(coverage))))
       
         if(bootci){
-          cisx <- quantile(pred$boot[,"SX"], c(0.025,0.975))
-          cipx <- quantile(pred$boot[,"PX"], c(0.025,0.975))
+          cisx <- quantile(pred$boot[,"SX"], c((1-coverage)/2, 1 - (1-coverage)/2))
+          cipx <- quantile(pred$boot[,"PX"], c((1-coverage)/2, 1 - (1-coverage)/2))
     
           bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
                              dimnames=list(c("SX","PX"),

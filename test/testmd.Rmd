@@ -5,21 +5,29 @@ output:
     code_fold: hide
 ---
 
-```{r}
+```{r, cache=FALSE}
 library(fitplc)
 
 dpap <- subset(stemvul, Species == "dpap")
 
-Xval <- 75
-cover <- 0.9
+Xval <- 72
+cover <- 0.81245
 
 f <- fitplc(dpap, x=Xval, coverage=cover)
 g <- fitplc(dpap, bootci=FALSE, x=Xval, coverage=cover)
 h <- fitplc(dpap, model="sigm", x=Xval, coverage=cover)
 
-k <- fitplc(stemvul, random=Species, x=Xval)
-m <- fitplc(stemvul, random=Species, model="sigm", x=Xval)
-m0 <- fitplc(stemvul, model="sigm", x=Xval)
+k <- fitplc(stemvul, random=Species, x=Xval, coverage=cover)
+m <- fitplc(stemvul, random=Species, model="sigm", x=Xval, coverage=cover)
+m0 <- fitplc(stemvul, model="sigm", x=Xval, coverage=cover)
+
+h1 <- fitplcs(stemvul, group="Species", x=Xval, coverage=cover)
+h2 <- fitplcs(stemvul, group="Species", x=Xval, model="sigmoid", coverage=cover)
+
+fc1 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), 
+               x=Xval, coverage=cover)
+fc2 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), 
+               model="sigmoid", x=Xval, coverage=cover)
 ```
 
 
@@ -56,7 +64,6 @@ coef(m0)
 ```
 
 ```{r, fig.width=5, fig.height=4}
-fc1 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"))
 plot(fc1)
 coef(fc1)
 summary(fc1)
@@ -64,7 +71,6 @@ summary(fc1)
 
 
 ```{r, fig.width=5, fig.height=4}
-fc2 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), model="sigmoid")
 plot(fc2)
 coef(fc2)
 summary(fc2)
@@ -72,7 +78,6 @@ summary(fc2)
 
 
 ```{r, fig.width=5, fig.height=4}
-h1 <- fitplcs(stemvul, group="Species")
 plot(h1, onepanel=TRUE, selines="none", plotci=FALSE)
 abline(h=0.5)
 coef(h1)
@@ -80,7 +85,6 @@ coef(h1)
 
 
 ```{r, fig.width=5, fig.height=4}
-h2 <- fitplcs(stemvul, group="Species", model="sigmoid")
 plot(h2, onepanel=TRUE, selines="none", plotci=FALSE)
 abline(h=0.5)
 coef(h2)

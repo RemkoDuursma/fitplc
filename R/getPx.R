@@ -40,7 +40,7 @@ getPx <- function(object, x=50, coverage=0.95){
       uprci <- approx(x=object$pred$upr, y=object$pred$x, xout=X)$y
       
       vec <- c(p, lwrci, uprci)
-      names(vec) <- c(paste0("P",x),"2.5%","97.5%")
+      names(vec) <- c(paste0("P",x),label_lowci(coverage), label_upci(coverage))
       
     } else {
       lwrci <- NA

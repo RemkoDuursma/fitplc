@@ -26,6 +26,7 @@ seq_within <- function(v, n=101){
 
 label_lowci <- function(coverage) sprintf("%s%%", 100*(1 - coverage)/2)
 label_upci <- function(coverage) sprintf("%s%%", 100*(coverage + (1 - coverage)/2))
+label_coverage <- function(coverage)paste0(100*coverage,"%")
 
 
 ci_names <- function(prefix="", coverage=0.95, sep = " - "){
