@@ -3,7 +3,7 @@
 #' @param xlab,ylab Optionally, X and Y axis labels (if not provided, a default is used).
 #' @param ylim Optionally, Y-axis limits.
 #' @param pch Optionally, the plotting symbol (default = 19, filled circles)
-#' @param selines Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval).
+#' @param px_ci Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval) (formerly argument was called \code{selines})
 #' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
 #' @param multiplier Multiply the scaled data (for plotting).
 #' @param x A fitted curve returned by \code{fitplc}
@@ -18,6 +18,7 @@
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).
+#' @param selines Obsolete; use \code{px_ci}
 #' @param \dots Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})
 #' @export
 #' @rdname plot.plcfit
@@ -26,21 +27,33 @@
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
                         multiplier=NULL,
-                        selines=c("bootstrap","parametric","none"),
+                        px_ci=c("bootstrap","parametric","none"),
                         plotrandom=FALSE,
                         linecol="black",
                         linecol2="blue",
                         pxlinecol="red",
                         pxcex=0.7,
                         citype=c("polygon","lines"),
-                        what=c("relk","PLC","embol"), ...){
+                        what=c("relk","PLC","embol"), 
+                        selines=NULL,
+                        ...){
   
   
   if(is.null(multiplier)){
     multiplier <- x$Kmax
   }
   
-  selines <- match.arg(selines)
+  if(!is.null(selines)){
+    px_ci <- selines
+    
+    if(!px_ci %in% eval(formals(plot.plcfit)$px_ci)){
+      stop("Option for selines not known - read help file ?plot.plcfit")
+    }
+    warning("Argument 'selines' is now called 'px_ci'.")
+  } else {
+    px_ci <- match.arg(px_ci)
+  }
+  
   citype <- match.arg(citype)
   
   if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
@@ -93,9 +106,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     
     ng <- length(x$pred$ran)
     if(what=="PLC"){
-      for(i in 1:ng){
-        x$pred$ran[[i]]$fit <- relk_to_plc(x$pred$ran[[i]]$fit)
-      }
+      x$pred$ran <- lapply(x$pred$ran, function(f)relk_to_plc(f$fit))
       x$pred$fit <- relk_to_plc(x$pred$fit)
     }
   }
@@ -149,22 +160,24 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     px <- coef(x)["PX","Estimate"]
     
     haveboot <- any(grepl("Boot", colnames(coef(x))))
-    if(selines == "bootstrap" && !haveboot)selines <- "parametric"
+    havenorm <- any(grepl("Norm", colnames(coef(x))))
     
-    # !! simplify and write warning
-    if(selines == "bootstrap"){
-      px_ci <- coef(x)["PX",c("Boot - 2.5%","Boot - 97.5%")]
-    } else if(selines == "parametric"){
-      px_ci <- coef(x)["PX",c("Norm - 2.5%","Norm - 97.5%")]
-    }
+    if(px_ci == "bootstrap" && !haveboot)px_ci <- "parametric"
+    
+    # Confidence lines for the P50
+    if(px_ci != "none"){
+      if(px_ci == "bootstrap" && !haveboot)px_ci <- "parametric"
+      if(px_ci == "parametric" && !havenorm)px_ci <- "bootstrap"
       
+      nm <- switch(px_ci, bootstrap="Boot", parametric="Norm")
+      px_ci <- coef(x)["PX",ci_names(nm,coverage=x$coverage)]
+      abline(v=px_ci, col=pxlinecol, lty=5)
+    }
     abline(v=px, col=pxlinecol)
-    if(selines != "none")abline(v=px_ci, col=pxlinecol, lty=5)
-    
+      
     mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
           line=0, col=pxlinecol, cex=pxcex)
   }
-  
 }
 
 
@@ -174,13 +187,14 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 #'@param legendwhere As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
 #'@rdname plot.plcfit
 #'@importFrom grDevices rainbow
-plot.manyplcfit <- function(x, what=c("relk","embol"), 
+plot.manyplcfit <- function(x, what=c("relk","embol","PLC"), 
                             onepanel=FALSE, linecol=NULL, 
                             pointcol=NULL,
                             pch=19, 
                             legend=TRUE, legendwhere="topright", ...){
   
   what <- match.arg(what)
+  if(what == "embol")what <- "PLC"
   np <- length(x)
   
   if(length(pch) < np)pch <- rep(pch,np)

@@ -229,9 +229,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                         c(ml_Px, boot_ci(boot_Px, coverage)))
         
         dimnames(cipars) <- list(c("SX","PX"), 
-                                 c("Estimate", 
-                                   sprintf("Boot - %s",label_lowci(coverage)),
-                                   sprintf("Boot - %s",label_upci(coverage))))
+                                 c("Estimate", ci_names("Boot",coverage)))
         
         # f must be component with 'fit' and 'boot'
         pred <- get_boot_pred_sigmoid(f, Data, coverage)
@@ -402,7 +400,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       l$Kmax <- Kmax
       l$nboot <- nboot
       
-
     }
     
     class(l) <- "plcfit"
@@ -410,6 +407,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     l$fitran <- fitran
     l$bootci <- bootci
     l$model <- model
+    l$coverage <- coverage
     return(l)
 }    
 

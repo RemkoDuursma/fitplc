@@ -7,14 +7,14 @@
 \usage{
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
-  add = FALSE, multiplier = NULL, selines = c("bootstrap", "parametric",
+  add = FALSE, multiplier = NULL, px_ci = c("bootstrap", "parametric",
   "none"), plotrandom = FALSE, linecol = "black", linecol2 = "blue",
   pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
-  what = c("relk", "PLC", "embol"), ...)
+  what = c("relk", "PLC", "embol"), selines = NULL, ...)
 
-\method{plot}{manyplcfit}(x, what = c("relk", "embol"), onepanel = FALSE,
-  linecol = NULL, pointcol = NULL, pch = 19, legend = TRUE,
-  legendwhere = "topright", ...)
+\method{plot}{manyplcfit}(x, what = c("relk", "embol", "PLC"),
+  onepanel = FALSE, linecol = NULL, pointcol = NULL, pch = 19,
+  legend = TRUE, legendwhere = "topright", ...)
 }
 \arguments{
 \item{x}{A fitted curve returned by \code{fitplc}}
@@ -35,7 +35,7 @@
 
 \item{multiplier}{Multiply the scaled data (for plotting).}
 
-\item{selines}{Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval).}
+\item{px_ci}{Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval) (formerly argument was called \code{selines})}
 
 \item{plotrandom}{Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
 
@@ -50,6 +50,8 @@
 \item{citype}{Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.}
 
 \item{what}{Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).}
+
+\item{selines}{Obsolete; use \code{px_ci}}
 
 \item{onepanel}{For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)}
 

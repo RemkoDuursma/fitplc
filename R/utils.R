@@ -27,3 +27,13 @@ seq_within <- function(v, n=101){
 label_lowci <- function(coverage) sprintf("%s%%", 100*(1 - coverage)/2)
 label_upci <- function(coverage) sprintf("%s%%", 100*(coverage + (1 - coverage)/2))
 
+
+ci_names <- function(prefix="", coverage=0.95, sep = " - "){
+  c(sprintf("%s%s%s",prefix,
+            ifelse(prefix == "", "", sep),
+            label_lowci(coverage)),
+    sprintf("%s%s%s",prefix,
+            ifelse(prefix == "", "", sep),
+            label_upci(coverage)))
+}
+

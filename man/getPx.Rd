@@ -4,7 +4,7 @@
 \alias{getPx}
 \title{Extract Px from fitted objects}
 \usage{
-getPx(object, x = 50)
+getPx(object, x = 50, coverage = 0.95)
 }
 \arguments{
 \item{object}{Object returned by \code{\link{fitplc}}}
