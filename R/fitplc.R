@@ -90,7 +90,7 @@
 #' allfit <- fitplcs(stemvul, "Species", varnames=c(PLC="PLC", WP="MPa"), nboot=50)
 #' 
 #' # 3. Plot the fits.
-#' plot(allfit, onepanel=TRUE, plotci=FALSE, selines="none", pxlinecol="dimgrey")
+#' plot(allfit, onepanel=TRUE, plotci=FALSE, px_ci="none", pxlinecol="dimgrey")
 #'
 #' # Coefficients show the estimates and 95% CI (given by 'lower' and 'upper')
 #' # Based on the CI's, species differences can be decided.
@@ -121,7 +121,7 @@
 #' 
 #' # Fit multiple conductivity curves at once (bootstrap omitted for speed).
 #' kfits3 <- fitconds(stemvul, "Species", varnames=list(K="Cond", WP="MPa"), WP_Kmax=-0.3, boot=FALSE)
-#' plot(kfits3, onepanel=TRUE, ylim=c(0,12), selines="none")
+#' plot(kfits3, onepanel=TRUE, ylim=c(0,12), px_ci="none")
 #' 
 #' # 5. Random effects.
 #' # This example takes into account the fact that the individual data points for a species are not 
@@ -454,8 +454,11 @@ return(fit)
 sigfit_coefs <- function(c1,c2,x){
   a <- c2
   b <- c1 / c2
-  Sx <- 100 * c2/4
+  #Sx <- 100 * c2/4  # S50
+  
   Px <- ab_to_px(a, b, x)
+  d <- D(expression(1/(1 + exp(a*(Px - b)))), "Px")
+  Sx <- -100 * eval(d)
   
   list(Px=unname(Px), Sx=unname(Sx))
 }
