@@ -457,8 +457,9 @@ sigfit_coefs <- function(c1,c2,x){
   #Sx <- 100 * c2/4  # S50
   
   Px <- ab_to_px(a, b, x)
-  d <- D(expression(1/(1 + exp(a*(Px - b)))), "Px")
-  Sx <- -100 * eval(d)
+  
+  sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
+  Sx <- -100 * sig2d(Px,a,b)
   
   list(Px=unname(Px), Sx=unname(Sx))
 }
