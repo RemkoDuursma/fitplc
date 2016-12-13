@@ -46,12 +46,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   }
   
   if(!is.null(selines)){
-    px_ci <- selines
-    
-    if(!px_ci %in% eval(formals(plot.plcfit)$px_ci)){
-      stop("Option for selines not known - read help file ?plot.plcfit")
-    }
     warning("Argument 'selines' is now called 'px_ci'.")
+    px_ci <- match.arg(selines, eval(formals(plot.plcfit)$px_ci))
   } else {
     px_ci <- match.arg(px_ci)
   }
