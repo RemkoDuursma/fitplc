@@ -14,6 +14,7 @@
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
 #' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
 #' @param linecol The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
+#' @param linetype Line type for fitted curve (see options for \code{lty} in \code{\link{par}}).
 #' @param pointcol The color(s) of the data points.
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
@@ -32,6 +33,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         px_ci_label=TRUE,
                         plotrandom=FALSE,
                         linecol="black",
+                        linetype=1,
                         linecol2="blue",
                         pxlinecol="red",
                         pxcex=0.7,
@@ -142,7 +144,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       
     }
     with(x$pred,{
-      lines(x, multiplier * fit, type='l', lty=1, col=linecol)
+      lines(x, multiplier * fit, type='l', lty=linetype, col=linecol)
     })
   }
   
@@ -174,8 +176,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       if(px_ci_label){
         lab <- paste(label_coverage(x$coverage),nm)
         u <- par()$usr
-        dx <- (u[2] - u[1])/100
-        text(px_ci[2]+dx, u[3] + 0.95*(u[4] - u[3]),
+        dx <- (u[2] - u[1])/150
+        text(px_ci[2]+dx, u[3] + 0.96*(u[4] - u[3]),
              lab, cex=0.5*par()$cex, pos=4)
       }
       

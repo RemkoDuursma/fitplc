@@ -454,12 +454,12 @@ return(fit)
 sigfit_coefs <- function(c1,c2,x){
   a <- c2
   b <- c1 / c2
-  #Sx <- 100 * c2/4  # S50
-  
   Px <- ab_to_px(a, b, x)
   
+  # Derivative of sigmoid
   sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
   Sx <- -100 * sig2d(Px,a,b)
+  #Sx <- 100 * c2/4  # slope at P50
   
   list(Px=unname(Px), Sx=unname(Sx))
 }

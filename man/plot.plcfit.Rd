@@ -9,7 +9,7 @@
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
   add = FALSE, multiplier = NULL, px_ci = c("bootstrap", "parametric",
   "none"), px_ci_label = TRUE, plotrandom = FALSE, linecol = "black",
-  linecol2 = "blue", pxlinecol = "red", pxcex = 0.7,
+  linetype = 1, linecol2 = "blue", pxlinecol = "red", pxcex = 0.7,
   citype = c("polygon", "lines"), what = c("relk", "PLC", "embol"),
   selines = NULL, ...)
 
@@ -43,6 +43,8 @@
 \item{plotrandom}{Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
 
 \item{linecol}{The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).}
+
+\item{linetype}{Line type for fitted curve (see options for \code{lty} in \code{\link{par}}).}
 
 \item{linecol2}{The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).}
 
