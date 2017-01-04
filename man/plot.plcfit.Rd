@@ -7,8 +7,9 @@
 \usage{
 \method{plot}{plcfit}(x, xlab = NULL, ylab = NULL, ylim = NULL,
   pch = 19, plotPx = TRUE, plotci = TRUE, plotdata = TRUE,
-  add = FALSE, multiplier = NULL, px_ci = c("bootstrap", "parametric",
-  "none"), px_ci_label = TRUE, plotrandom = FALSE, linecol = "black",
+  plotfit = TRUE, add = FALSE, multiplier = NULL, px_ci = c("bootstrap",
+  "parametric", "none"), px_ci_type = c("vertical", "horizontal"),
+  px_ci_label = TRUE, plotrandom = FALSE, linecol = "black",
   linetype = 1, linecol2 = "blue", pxlinecol = "red", pxcex = 0.7,
   citype = c("polygon", "lines"), what = c("relk", "PLC", "embol"),
   selines = NULL, ...)

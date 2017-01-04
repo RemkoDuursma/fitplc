@@ -27,9 +27,10 @@
 #' @importFrom graphics abline mtext plot
 #' @importFrom stats approx coef confint
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
-                        plotPx=TRUE, plotci=TRUE, plotdata=TRUE, add=FALSE,
+                        plotPx=TRUE, plotci=TRUE, plotdata=TRUE, plotfit=TRUE, add=FALSE,
                         multiplier=NULL,
                         px_ci=c("bootstrap","parametric","none"),
+                        px_ci_type=c("vertical","horizontal"),
                         px_ci_label=TRUE,
                         plotrandom=FALSE,
                         linecol="black",
@@ -55,6 +56,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   }
   
   citype <- match.arg(citype)
+  px_ci_type <- match.arg(px_ci_type)
   
   if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
   
@@ -143,9 +145,11 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       }
       
     }
-    with(x$pred,{
-      lines(x, multiplier * fit, type='l', lty=linetype, col=linecol)
-    })
+    if(plotfit){
+      with(x$pred,{
+        lines(x, multiplier * fit, type='l', lty=linetype, col=linecol)
+      })
+    }
   }
   
   if(plotrandom){
@@ -171,21 +175,37 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       
       nm <- switch(px_ci, bootstrap="Boot", parametric="Norm")
       px_ci <- coef(x)["PX",ci_names(nm,coverage=x$coverage)]
-      abline(v=px_ci, col=pxlinecol, lty=5)
       
-      if(px_ci_label){
-        lab <- paste(label_coverage(x$coverage),nm)
-        u <- par()$usr
-        dx <- (u[2] - u[1])/150
-        text(px_ci[2]+dx, u[3] + 0.96*(u[4] - u[3]),
-             lab, cex=0.5*par()$cex, pos=4)
+      u <- par()$usr
+      dx <- (u[2] - u[1])/150
+      
+      if(px_ci_type == "vertical"){
+        abline(v=px_ci, col=pxlinecol, lty=5)
+        abline(v=px, col=pxlinecol)
+        mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
+              line=0, col=pxlinecol, cex=pxcex)
+        
+        if(px_ci_label){
+          lab <- paste(label_coverage(x$coverage),nm)
+          text(px_ci[2]+dx, u[3] + 0.96*(u[4] - u[3]),
+               lab, cex=0.5*par()$cex, pos=4)
+        }
+        
+      }
+      if(px_ci_type == "horizontal") {
+        segments(x0=px_ci[1], x1=px_ci[2],
+                 y0=1-x$x/100, y1=1-x$x/100)
+        points(x=px, y=1-x$x/100, pch=21, bg="white")
+        
+        if(px_ci_label){
+          lab <- bquote(P[.(x$x)])
+          text(px_ci[2]+dx, 1-x$x/100,
+               lab, cex=0.6*par()$cex, pos=4)
+        }
       }
       
     }
-    abline(v=px, col=pxlinecol)
-      
-    mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
-          line=0, col=pxlinecol, cex=pxcex)
+    
   }
 }
 
