@@ -163,6 +163,12 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     
     px <- coef(x)["PX","Estimate"]
     
+    if(px_ci_type != "horizontal"){
+      abline(v=px, col=pxlinecol)
+      mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
+              line=0, col=pxlinecol, cex=pxcex)
+    }
+    
     haveboot <- any(grepl("Boot", colnames(coef(x))))
     havenorm <- any(grepl("Norm", colnames(coef(x))))
     
@@ -181,10 +187,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       
       if(px_ci_type == "vertical"){
         abline(v=px_ci, col=pxlinecol, lty=5)
-        abline(v=px, col=pxlinecol)
-        mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
-              line=0, col=pxlinecol, cex=pxcex)
-        
+
         if(px_ci_label){
           lab <- paste(label_coverage(x$coverage),nm)
           text(px_ci[2]+dx, u[3] + 0.96*(u[4] - u[3]),
