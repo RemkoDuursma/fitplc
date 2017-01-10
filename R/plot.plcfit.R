@@ -83,7 +83,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       }
     
     } else if(what == "PLC"){
-      ylab <- "% Embolism"
+      ylab <- "Percent loss conductivity (%)"
     }
   }
   
