@@ -33,11 +33,15 @@
 
 \item{plotdata}{Logical (default TRUE), whether to add the data to the plot.}
 
+\item{plotfit}{Logical (default TRUE), whether to add the fitted curve to the plot.}
+
 \item{add}{Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.}
 
 \item{multiplier}{Multiply the scaled data (for plotting).}
 
 \item{px_ci}{Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval) (formerly argument was called \code{selines})}
+
+\item{px_ci_type}{Either 'vertical' (default), or 'horizontal', to plot confidence limits for Px.}
 
 \item{px_ci_label}{Logical (default TRUE), whether to write a label next to the CI for Px.}
 

@@ -12,6 +12,7 @@
 #' @param weights A variable used as weights that must be present in the dataframe (unquoted, see examples).
 #' @param random Variable that specifies random effects (unquoted; must be present in dfr).
 #' @param x If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).
+#' @param coverage The coverage of the confidence interval for the parameters (0.95 is the default).
 #' @param model Either 'Weibull' or 'sigmoidal'. See Details.
 #' @param startvalues Obsolete - starting values for Weibull now estimated from sigmoidal model fit.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
@@ -45,6 +46,12 @@
 #' @importFrom nlme nlme
 #' @importFrom nlme intervals
 #' @importFrom car deltaMethod
+#' @importFrom graphics par
+#' @importFrom graphics points
+#' @importFrom graphics segments
+#' @importFrom graphics text
+#' @importFrom stats lm
+#' @importFrom nlme lme
 #' @rdname fitplc
 #' 
 #' @examples
@@ -418,7 +425,7 @@ do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
   # This is necessary - might have to revisit this method.
   #data$PLCf <- pmax(0.1, pmin(99.9, data$PLC))
   
-  data <- subset(data, PLC < 100 & PLC > 0)
+  data <- data[data$PLC < 100 & data$PLC > 0,]
 
   # Transformation as per P&vW
   data$logPLC <- log(100/data$PLC - 1)
@@ -436,7 +443,7 @@ do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
 
 do_sigmoid_lme_fit <- function(data, W=NULL){
   
-  data <- subset(data, PLC > 0 & PLC < 100)
+  data <- data[data$PLC > 0 & data$PLC < 100,]
   
   data$logPLC <- log(100/data$PLC - 1)
   

@@ -36,6 +36,8 @@ fitconds(dfr, group, ...)
 
 \item{x}{If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).}
 
+\item{coverage}{The coverage of the confidence interval for the parameters (0.95 is the default).}
+
 \item{bootci}{If TRUE, also computes the bootstrap confidence interval.}
 
 \item{nboot}{The number of bootstrap replicates used for calculating confidence intervals.}

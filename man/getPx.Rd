@@ -10,6 +10,8 @@ getPx(object, x = 50, coverage = 0.95)
 \item{object}{Object returned by \code{\link{fitplc}}}
 
 \item{x}{The x in Px, that is, if P50 should be returned, x=50.}
+
+\item{coverage}{The desired coverage of the confidence interval (0.95 is the default).}
 }
 \description{
 Extract esimates of Px from an object returned by \code{\link{fitplc}}. This allows extraction of estimates of P88 or other values when the fit estimated P50 (or other), for example. When the Weibull model is used, it is especially recommended to fit the P50 and estimate other points of the curve with \code{getPx}. 

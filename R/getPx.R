@@ -4,6 +4,7 @@
 #' See examples for use of this function. Note that the confidence interval is based on the bootstrap resampling performed by \code{\link{fitplc}}. This function only works when \code{bootci=TRUE} when the curve was fit.
 #' @param object Object returned by \code{\link{fitplc}}
 #' @param x The x in Px, that is, if P50 should be returned, x=50.
+#' @param coverage The desired coverage of the confidence interval (0.95 is the default).
 #' @details Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). A better approach is to only report the CI and not the SE.
 #' 
 #' Sometimes the upper CI cannot be calculated and will be reported as \code{NA}. This indicates that the upper confidence bound is outside the range of the data, and can therefore not be reliably reported. It is especially common when \code{x} is large, say for P88. 

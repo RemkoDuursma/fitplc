@@ -22,7 +22,7 @@ fitcond <- function(dfr, varnames = c(K="K", WP="MPa"),
   
   # Need absolute values of water potential
   if(mean(P) < 0)P <- -P
-  if(WP_Kmax < 0)WP_Kmax <- -WP_Kmax
+  if(!is.null(WP_Kmax) && WP_Kmax < 0)WP_Kmax <- -WP_Kmax
   
   # Calculate Kmax based on WP threshold
   if(is.null(Kmax)){

@@ -20,7 +20,7 @@ A sigmoidal-exponential function, which describes the relative conductivity as a
 }
 \examples{
 curve(fsigmoidal(x, PX=-2, a=5), from=0, to=-5)
-curve(fsigmoidal(x, PX=-2, a=2), add=T)
+curve(fsigmoidal(x, PX=-2, a=2), add=TRUE)
 
 # Comparison to Weibull
 curve(fweibull(x, PX=3, SX=40), from=0, to=6)

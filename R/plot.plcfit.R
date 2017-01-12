@@ -4,6 +4,7 @@
 #' @param ylim Optionally, Y-axis limits.
 #' @param pch Optionally, the plotting symbol (default = 19, filled circles)
 #' @param px_ci Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval) (formerly argument was called \code{selines})
+#' @param px_ci_type Either 'vertical' (default), or 'horizontal', to plot confidence limits for Px.
 #' @param px_ci_label Logical (default TRUE), whether to write a label next to the CI for Px.
 #' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
 #' @param multiplier Multiply the scaled data (for plotting).
@@ -11,6 +12,7 @@
 #' @param plotPx Logical (default TRUE), whether to plot a vertical line for the P50.
 #' @param plotci Logical (default TRUE), whether to plot the confidence interval (if computed with bootci=TRUE).
 #' @param plotdata Logical (default TRUE), whether to add the data to the plot.
+#' @param plotfit Logical (default TRUE), whether to add the fitted curve to the plot.
 #' @param add Logical (default FALSE), whether to add the plot to a current device. This is useful to overlay two plots or curves, for example.
 #' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
 #' @param linecol The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).

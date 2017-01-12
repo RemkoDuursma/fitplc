@@ -27,11 +27,12 @@ fweibull <- function(P, SX, PX, X=50){
 #' @references Pammenter, N.W., Willigen, C.V. der, 1998. A mathematical and statistical analysis of the curves illustrating vulnerability of xylem to cavitation. Tree Physiol 18, 589-593. doi:10.1093/treephys/18.8-9.589
 #' @examples
 #' curve(fsigmoidal(x, PX=-2, a=5), from=0, to=-5)
-#' curve(fsigmoidal(x, PX=-2, a=2), add=T)
+#' curve(fsigmoidal(x, PX=-2, a=2), add=TRUE)
 #' 
 #' # Comparison to Weibull
 #' curve(fweibull(x, PX=3, SX=40), from=0, to=6)
 #' curve(fsigmoidal(x, PX=3, a=4*(40/100)), add=TRUE, col="red")
+#' @export
 fsigmoidal <- function(P, PX, a, X=50){
   
   X <- X[1] # vector might have been passed but X cannot actually vary.
