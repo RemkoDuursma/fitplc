@@ -1,7 +1,7 @@
 Package: fitplc
 Type: Package
 Title: Fit Hydraulic Vulnerability Curves
-Version: 1.1-3
+Version: 1.1-4
 Author: Remko Duursma
 Maintainer: Remko Duursma <remkoduursma@gmail.com>
 Description: Fits the Weibull equation to percent loss conductivity (plc) curves as a function of plant water potential, computes SE of parameter estimates and location of curve with bootstrap or parametric methods, and provides convenient plotting methods.

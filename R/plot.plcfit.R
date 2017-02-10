@@ -23,6 +23,7 @@
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).
 #' @param selines Obsolete; use \code{px_ci}
+#' @param xaxis Either 'positive' (default), so that water potential is plotted as positive values, or 'negative', plotting negative-valued water potentials.
 #' @param \dots Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})
 #' @export
 #' @rdname plot.plcfit
@@ -43,14 +44,15 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         citype=c("polygon","lines"),
                         what=c("relk","PLC","embol"), 
                         selines=NULL,
+                        xaxis=c("positive","negative"),
                         ...){
   
   
-  if(is.null(multiplier)){
+  if(missing(multiplier)){
     multiplier <- x$Kmax
   }
   
-  if(!is.null(selines)){
+  if(!missing(selines)){
     warning("Argument 'selines' is now called 'px_ci'.")
     px_ci <- match.arg(selines, eval(formals(plot.plcfit)$px_ci))
   } else {
@@ -60,9 +62,11 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   citype <- match.arg(citype)
   px_ci_type <- match.arg(px_ci_type)
   
-  if(is.null(xlab))xlab <- expression(Water~potential~~(-MPa))
+  xaxis <- match.arg(xaxis)
+  xsign <- if(xaxis == "negative")-1 else 1
   
   type <- ifelse(plotdata, 'p', 'n')
+  
   what <- match.arg(what)
   if(what == "embol")what <- "PLC"
   
@@ -74,8 +78,17 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   if(plotrandom && !x$fitran)
     stop("To plot random effects predictions, refit with 'random' argument.")
   
+  # Set x-axis label
+  if(missing(xlab)){
+    if(xaxis == "positive"){
+      xlab <- expression(Water~potential~~(-MPa))
+    } else {
+      xlab <- expression(Water~potential~~(MPa))
+    }
+  }
+  
   # Set y-axis label
-  if(is.null(ylab)){
+  if(missing(ylab)){
     if(what == "relk"){
       
       if(!x$condfit){
@@ -117,14 +130,14 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 
   if(!add){
     with(x, {
-      plot(data$P, multiplier * data$Y, ylim=ylim, pch=pch,
+      plot(xsign * data$P, multiplier * data$Y, ylim=ylim, pch=pch,
            xlab=xlab,
            type=type,
            ylab=ylab, ...)
     })
   } else {
     with(x, {
-      points(data$P, multiplier * data$Y, pch=pch, type=type,...)
+      points(xsign * data$P, multiplier * data$Y, pch=pch, type=type,...)
     })
   }
   
@@ -132,16 +145,16 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     if(x$bootci && plotci){
       if(citype == "lines"){
         with(x$pred,{
-          lines(x, multiplier * lwr, type='l', lty=5, col=linecol)
-          lines(x, multiplier * upr, type='l', lty=5, col=linecol)
+          lines(xsign * x, multiplier * lwr, type='l', lty=5, col=linecol)
+          lines(xsign * x, multiplier * upr, type='l', lty=5, col=linecol)
         })
       }
       if(citype == "polygon"){
-        with(x$pred, addpoly(x,multiplier * lwr,multiplier * upr))
+        with(x$pred, addpoly(xsign * x, multiplier * lwr, multiplier * upr))
         # replot points
         if(plotdata){
           with(x, {
-            points(data$P, multiplier * data$Y, pch=pch, type=type,...)
+            points(xsign * data$P, multiplier * data$Y, pch=pch, type=type,...)
           })
         }
       }
@@ -149,16 +162,16 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     }
     if(plotfit){
       with(x$pred,{
-        lines(x, multiplier * fit, type='l', lty=linetype, col=linecol)
+        lines(xsign * x, multiplier * fit, type='l', lty=linetype, col=linecol)
       })
     }
   }
   
   if(plotrandom){
     for(i in 1:length(x$pred$ran)){
-      with(x$pred$ran[[i]], lines(x, multiplier * fit, type='l', col=linecol))
+      with(x$pred$ran[[i]], lines(xsign * x, multiplier * fit, type='l', col=linecol))
     }  
-    with(x$pred, lines(x, multiplier * fit, type='l', lwd=2, col=linecol2))
+    with(x$pred, lines(xsign * x, multiplier * fit, type='l', lwd=2, col=linecol2))
   }
   
   if(plotPx){
@@ -166,8 +179,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     px <- coef(x)["PX","Estimate"]
     
     if(px_ci_type != "horizontal"){
-      abline(v=px, col=pxlinecol)
-      mtext(side=3, at=px, text=bquote(P[.(x$x)]), 
+      abline(v=xsign * px, col=pxlinecol)
+      mtext(side=3, at=xsign * px, text=bquote(P[.(x$x)]), 
               line=0, col=pxlinecol, cex=pxcex)
     }
     
@@ -188,23 +201,23 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       dx <- (u[2] - u[1])/150
       
       if(px_ci_type == "vertical"){
-        abline(v=px_ci, col=pxlinecol, lty=5)
+        abline(v=xsign * px_ci, col=pxlinecol, lty=5)
 
         if(px_ci_label){
           lab <- paste(label_coverage(x$coverage),nm)
-          text(px_ci[2]+dx, u[3] + 0.96*(u[4] - u[3]),
+          text(xsign * (px_ci[2]+dx), u[3] + 0.96*(u[4] - u[3]),
                lab, cex=0.5*par()$cex, pos=4)
         }
         
       }
       if(px_ci_type == "horizontal") {
-        segments(x0=px_ci[1], x1=px_ci[2],
+        segments(x0=xsign*px_ci[1], x1=xsign*px_ci[2],
                  y0=1-x$x/100, y1=1-x$x/100)
-        points(x=px, y=1-x$x/100, pch=21, bg="white")
+        points(x=xsign * px, y=1-x$x/100, pch=21, bg="white")
         
         if(px_ci_label){
           lab <- bquote(P[.(x$x)])
-          text(px_ci[2]+dx, 1-x$x/100,
+          text(xsign*(px_ci[2]+dx), 1-x$x/100,
                lab, cex=0.6*par()$cex, pos=4)
         }
       }

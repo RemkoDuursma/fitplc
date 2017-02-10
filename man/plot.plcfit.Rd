@@ -12,7 +12,7 @@
   px_ci_label = TRUE, plotrandom = FALSE, linecol = "black",
   linetype = 1, linecol2 = "blue", pxlinecol = "red", pxcex = 0.7,
   citype = c("polygon", "lines"), what = c("relk", "PLC", "embol"),
-  selines = NULL, ...)
+  selines = NULL, xaxis = c("positive", "negative"), ...)
 
 \method{plot}{manyplcfit}(x, what = c("relk", "embol", "PLC"),
   onepanel = FALSE, linecol = NULL, pointcol = NULL, pch = 19,
@@ -62,6 +62,8 @@
 \item{what}{Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).}
 
 \item{selines}{Obsolete; use \code{px_ci}}
+
+\item{xaxis}{Either 'positive' (default), so that water potential is plotted as positive values, or 'negative', plotting negative-valued water potentials.}
 
 \item{onepanel}{For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)}
 
