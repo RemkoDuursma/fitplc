@@ -7,5 +7,6 @@ Maintainer: Remko Duursma <remkoduursma@gmail.com>
 Description: Fits the Weibull equation to percent loss conductivity (plc) curves as a function of plant water potential, computes SE of parameter estimates and location of curve with bootstrap or parametric methods, and provides convenient plotting methods.
 License: GPL
 Depends: nlme, car
+Suggests: testthat
 LazyData: yes
 RoxygenNote: 5.0.1
