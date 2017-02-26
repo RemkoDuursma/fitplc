@@ -36,6 +36,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         px_ci_type=c("vertical","horizontal"),
                         px_ci_label=TRUE,
                         plotrandom=FALSE,
+                        pointcol="black",
                         linecol="black",
                         linetype=1,
                         linecol2="blue",
@@ -131,13 +132,15 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   if(!add){
     with(x, {
       plot(xsign * data$P, multiplier * data$Y, ylim=ylim, pch=pch,
+           col=pointcol,
            xlab=xlab,
            type=type,
            ylab=ylab, ...)
     })
   } else {
     with(x, {
-      points(xsign * data$P, multiplier * data$Y, pch=pch, type=type,...)
+      points(xsign * data$P, multiplier * data$Y, pch=pch, 
+             type=type, col=pointcol, ...)
     })
   }
   
@@ -154,7 +157,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
         # replot points
         if(plotdata){
           with(x, {
-            points(xsign * data$P, multiplier * data$Y, pch=pch, type=type,...)
+            points(xsign * data$P, multiplier * data$Y, pch=pch, type=type, col=pointcol, ...)
           })
         }
       }
