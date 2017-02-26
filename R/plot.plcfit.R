@@ -258,10 +258,10 @@ plot.manyplcfit <- function(x, what=c("relk","embol","PLC"),
     if(is.null(linecol))linecol <- rainbow(np)
     if(is.null(pointcol))pointcol <- rainbow(np)
     
-    plot(x[[1]], pch=pch[1], col=pointcol[1], what=what,...)
+    plot(x[[1]], pch=pch[1], pointcol=pointcol[1], what=what,...)
     if(np > 1){
       for(i in 2:np){
-        plot(x[[i]], add=TRUE, linecol=linecol[i], col=pointcol[i], pch=pch[i], what=what, ...)
+        plot(x[[i]], add=TRUE, linecol=linecol[i], pointcol=pointcol[i], pch=pch[i], what=what, ...)
       }
     }
     # If plotting lines, plot them again to make sure they are on top
