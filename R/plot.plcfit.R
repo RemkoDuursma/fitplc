@@ -19,6 +19,7 @@
 #' @param linetype Line type for fitted curve (see options for \code{lty} in \code{\link{par}}).
 #' @param pointcol The color(s) of the data points.
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
+#' @param cicol The color of the confidence interval band (if plotted).
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).
@@ -43,6 +44,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         pxlinecol="red",
                         pxcex=0.7,
                         citype=c("polygon","lines"),
+                        cicol=alpha("lightgrey",0.8),
                         what=c("relk","PLC","embol"), 
                         selines=NULL,
                         xaxis=c("positive","negative"),
@@ -153,7 +155,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
         })
       }
       if(citype == "polygon"){
-        with(x$pred, addpoly(xsign * x, multiplier * lwr, multiplier * upr))
+        with(x$pred, addpoly(xsign * x, multiplier * lwr, multiplier * upr, col=cicol))
         # replot points
         if(plotdata){
           with(x, {

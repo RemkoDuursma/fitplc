@@ -11,8 +11,9 @@
   "parametric", "none"), px_ci_type = c("vertical", "horizontal"),
   px_ci_label = TRUE, plotrandom = FALSE, pointcol = "black",
   linecol = "black", linetype = 1, linecol2 = "blue", pxlinecol = "red",
-  pxcex = 0.7, citype = c("polygon", "lines"), what = c("relk", "PLC",
-  "embol"), selines = NULL, xaxis = c("positive", "negative"), ...)
+  pxcex = 0.7, citype = c("polygon", "lines"), cicol = alpha("lightgrey",
+  0.8), what = c("relk", "PLC", "embol"), selines = NULL,
+  xaxis = c("positive", "negative"), ...)
 
 \method{plot}{manyplcfit}(x, what = c("relk", "embol", "PLC"),
   onepanel = FALSE, linecol = NULL, pointcol = NULL, pch = 19,
@@ -60,6 +61,8 @@
 \item{pxcex}{Character size for the Px label above the Y-axis.}
 
 \item{citype}{Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.}
+
+\item{cicol}{The color of the confidence interval band (if plotted).}
 
 \item{what}{Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).}
 

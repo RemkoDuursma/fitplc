@@ -88,7 +88,8 @@ plot(f, xlab="Hello", ylab="Hey", ylim=c(0,2), pch=15, plotPx=FALSE,
      plotci=FALSE, plotdata=FALSE, plotfit=FALSE, multiplier=1.01,
      px_ci="parametric", px_ci_type="horizontal", px_ci_label=FALSE,
      linecol="grey",linetype=3, linecol2="red",pxlinecol="blue",
-     pxcex=0.9, citype="lines", what="PLC",xaxis="negative")
+     pxcex=0.9, citype="lines", what="PLC",xaxis="negative",
+     main="intentionally blank figure")
 
 plot(f, px_ci="parametric")
 plot(h, px_ci="parametric")
