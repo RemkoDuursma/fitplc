@@ -72,9 +72,9 @@
 
 \item{onepanel}{For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)}
 
-\item{legend}{Logical (default TRUE), whether to include a simple legend when plotting multiple fits}
+\item{legend}{(for fitconds and fitplcs only) Logical (default TRUE), whether to include a simple legend when plotting multiple fits}
 
-\item{legendwhere}{As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)}
+\item{legendwhere}{(for fitconds and fitplcs only) As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)}
 
 \item{\dots}{Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})}
 }

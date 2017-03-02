@@ -281,7 +281,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         
       }
       
-      l <- list(fit=fit, pred=pred, cipars=cipars, data=Data, x=x, Kmax=1)
+      l <- list(fit=fit, pred=pred, 
+                cipars=cipars, data=Data, x=x, 
+                Kmax=Kmax)
 
     }
 
