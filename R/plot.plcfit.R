@@ -235,8 +235,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 
 #'@export
 #'@param onepanel For plotting of many curve fits, plot all curves in one panel (TRUE) or in separate panels (FALSE)
-#'@param legend Logical (default TRUE), whether to include a simple legend when plotting multiple fits
-#'@param legendwhere As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
+#'@param legend (for fitconds and fitplcs only) Logical (default TRUE), whether to include a simple legend when plotting multiple fits
+#'@param legendwhere (for fitconds and fitplcs only) As in \code{\link{legend}}, specification of where to place legend (e.g. 'bottomleft'; coordinates not accepted)
 #'@rdname plot.plcfit
 #'@importFrom grDevices rainbow
 plot.manyplcfit <- function(x, what=c("relk","embol","PLC"), 
