@@ -6,6 +6,8 @@ Author: Remko Duursma
 Maintainer: Remko Duursma <remkoduursma@gmail.com>
 Description: Fits Weibull or sigmoidal models to percent loss conductivity (plc) curves as a function of plant water potential, computes confidence intervals of parameter estimates and predictions with bootstrap or parametric methods, and provides convenient plotting methods.
 License: GPL
+URL: https://www.bitbucket.org/remkoduursma/fitplc
+BugReports: https://www.bitbucket.org/remkoduursma/fitplc/issues
 Depends: nlme, car
 Suggests: testthat
 LazyData: yes
