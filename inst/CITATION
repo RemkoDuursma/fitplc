@@ -1,0 +1,12 @@
+bibentry(bibtype = "article",
+         author = c(
+         person("Remko", "Duursma", role="aut"),
+         person("Brendan", "Choat", role="aut")
+         ),
+         year = "2017",
+         title = "fitplc - an {R} package to fit hydraulic vulnerability curves",
+         journal = "{Journal of Plant Hydraulics}",
+         volume = "4",
+         doi = "10.20870/jph.2017.e002",
+         pages = "002")
+         
