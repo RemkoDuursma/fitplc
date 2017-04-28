@@ -19,7 +19,9 @@
 #' getPx(somefit, x=c(12,88))
 #' 
 #'@export
-getPx <- function(object, x=50, coverage=0.95){
+getPx <- function(object, x=50, coverage=0.95, sigmoid_rescale_Px = FALSE){
+  
+  resc_cons <- 1
   
   getpx_fun <- function(object, x){
     X <- 1 - x/100
@@ -31,14 +33,20 @@ getPx <- function(object, x=50, coverage=0.95){
       v <- (object$x - 100)*log(1 - object$x/100)
       p <- px*(log(1 - x/100)/log(1 - object$x/100))^(v/(px*sx))
     } else {
-      p <- approx(x=object$pred$fit, y=object$pred$x, xout=X)$y
+      
+      if(!sigmoid_rescale_Px){
+        p <- approx(x=object$pred$fit, y=object$pred$x, xout=X)$y
+      } else {
+        resc_cons <- object$Kmax / object$K0
+        p <- approx(x=object$pred$fit * resc_cons, y=object$pred$x, xout=X)$y
+      }
     }
     
     haveci <- "lwr" %in% names(object$pred)
     
     if(haveci){
-      lwrci <- approx(x=object$pred$lwr, y=object$pred$x, xout=X)$y
-      uprci <- approx(x=object$pred$upr, y=object$pred$x, xout=X)$y
+      lwrci <- approx(x=object$pred$lwr * resc_cons, y=object$pred$x, xout=X)$y
+      uprci <- approx(x=object$pred$upr * resc_cons, y=object$pred$x, xout=X)$y
       
       vec <- c(p, lwrci, uprci)
       names(vec) <- c(paste0("P",x),label_lowci(coverage), label_upci(coverage))

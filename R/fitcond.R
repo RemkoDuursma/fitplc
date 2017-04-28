@@ -2,7 +2,9 @@
 #' @rdname fitplc
 fitcond <- function(dfr, varnames = c(K="K", WP="MPa"), 
                     Kmax=NULL,
-                    WP_Kmax=NULL, ...){
+                    WP_Kmax=NULL, 
+                    rescale_Px = FALSE,
+                    ...){
 
   
   if(is.null(WP_Kmax) && is.null(Kmax)){
@@ -37,6 +39,16 @@ fitcond <- function(dfr, varnames = c(K="K", WP="MPa"),
   f <- fitplc(dfr, varnames=c(PLC = "plc", WP = varnames[["WP"]]), 
               calledfromfitcond=TRUE, Kmax=KmaxVal,
               ...)
+  
+  # Store K at WP = 0
+  f$K0 <- KmaxVal * sigmoid_untrans(predict(f$fit, data.frame(minP=0)))
+  
+  # If rescale_Px, recalculate Px relative to K0, not Kmax.
+  # For linearish data, K0 << Kmax, thus Px too large.
+  if(rescale_Px){
+    gp <- getPx(f, x=f$x, sigmoid_rescale_Px = TRUE)
+    f$cipars[2,] <- unname(unlist(gp)[2:4])
+  }
   
 return(f)
 }
