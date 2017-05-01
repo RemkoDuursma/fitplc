@@ -5,6 +5,7 @@
 #' @param object Object returned by \code{\link{fitplc}}
 #' @param x The x in Px, that is, if P50 should be returned, x=50.
 #' @param coverage The desired coverage of the confidence interval (0.95 is the default).
+#' @param sigmoid_rescale_Px Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax).
 #' @details Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). A better approach is to only report the CI and not the SE.
 #' 
 #' Sometimes the upper CI cannot be calculated and will be reported as \code{NA}. This indicates that the upper confidence bound is outside the range of the data, and can therefore not be reliably reported. It is especially common when \code{x} is large, say for P88. 

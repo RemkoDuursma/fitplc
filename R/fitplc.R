@@ -20,6 +20,8 @@
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
 #' @param Kmax Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.
 #' @param WP_Kmax Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.
+#' @param recale_Px Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). Identical to #' \code{sigmoid_rescale_Px} argument in \code{\link{getPx}}.
+#' @param shift_zero_min Logical (default FALSE). If TRUE, shifts the water potential data so that the highest (least negative) value measured is set to zero. This has consequences for estimation of Kmax, and is only used for \code{fitcond}. 
 #'
 #' @details 
 #' \strong{Models} - 
@@ -147,6 +149,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    nboot=999,
                    quiet=TRUE,
                    startvalues=NULL,
+                   shift_zero_min = FALSE,
                    ...){
     
     
@@ -200,11 +203,20 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     # Extract data
     plc <- dfr[[varnames["PLC"]]]
     P <- dfr[[varnames["WP"]]]
-    if(any(is.na(c(plc,P))))stop("Remove missing values first.")
+    if(any(is.na(c(plc,P))))stop("Missing values found in PLC or WP - remove first!")
     relK <- plc_to_relk(plc)
     
     # Need absolute values of water potential
     if(mean(P) < 0)P <- -P
+
+    # Set least negative to zero, if requested.
+    # Useful for very linear data.
+    if(shift_zero_min){
+      shift_val <- min(P)
+      P <- P - shift_val
+    } else {
+      shift_val <- 0
+    }
     
     # weights, if provided
     W <- eval(substitute(weights), dfr)
@@ -417,6 +429,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     l$bootci <- bootci
     l$model <- model
     l$coverage <- coverage
+    l$shiftval <- shift_val
     return(l)
 }    
 
