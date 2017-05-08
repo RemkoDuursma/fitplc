@@ -142,7 +142,7 @@
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
-                   model=c("Weibull","sigmoidal"), 
+                   model=c("Weibull","sigmoidal","loess"), 
                    x=50,
                    coverage=0.95,
                    bootci=TRUE,
@@ -157,11 +157,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       if(!quiet)warning("startvalues ignored - starting values now estimated from sigmoidal fit.")
     }
   
-    # sigmoid_lm
-    # sigmoid_lme
-    # weibull_nls
-    # weibull_nlme
-  
     model <- match.arg(model)
     
     if(!bootci && model == "sigmoidal"){
@@ -171,10 +166,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
   
     # Find out if called from fitcond.
     mc <- names(as.list(match.call()))
-    
     condfit <- "calledfromfitcond" %in% mc
     
-    # Get Kmax value
+    # Get Kmax value (set in fitcond)
     if(!"Kmax" %in% mc){
       Kmax <- 1
     } else {
@@ -188,6 +182,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       stop("Check variable name for water potential!")
     
     if(!is.null(substitute(random))){
+      
+      if(model == "loess"){
+        stop("Cannot estimate random effects with the loess model.")
+      }
+      
       G <- eval(substitute(random), dfr)
       fitran <- TRUE
       if(bootci){
@@ -225,7 +224,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Data <- data.frame(P=P, PLC=plc, relK=relK, G=G)
     Data$minP <- -Data$P  # negative valued water potential
     
-    
+    if(model == "loess"){
+      f <- do_loess_fit(Data, span=0.75)
+      
+      cf <- loessfit_coefs(f, x=x)
+    }
     
     if(model == "sigmoidal"){
       
@@ -233,10 +236,12 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         # without random effect
         f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
         
+        # Bootstrap
         cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
         boot_Sx <- cf$Sx  
         boot_Px <- cf$Px
         
+        # Maximum likelihood
         p <- coef(f$fit)
         
         mf <- sigfit_coefs(p[1],p[2],x=x)
@@ -447,10 +452,12 @@ do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
   
   if(!is.null(W)){
     lmfit <- lm(logPLC ~ minP, data=data, weights=W)
-    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, startList=NULL, weights=W)) else NA
+    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, 
+                                            startList=NULL, weights=W)) else NA
   } else {
     lmfit <- lm(logPLC ~ minP, data=data)
-    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, startList=NULL)) else NA
+    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, 
+                                            startList=NULL)) else NA
   }
   
   return(list(fit=lmfit, boot=br))
@@ -501,4 +508,19 @@ get_boot_pred_sigmoid <- function(f, data, coverage){
   
   return(bootpred)
 }
+
+
+do_loess_fit <- function(data, span = 0.75, W=NULL, boot=FALSE, nboot=1000){
+
+  if(!is.null(weights)){
+    fit <- loess(relK ~ P, data=data, span=span, weights=W)
+  } else {
+    fit <- loess(relK ~ P, data=data, span=span)
+  }
+  
+return(fit)
+}
+
+
+
 

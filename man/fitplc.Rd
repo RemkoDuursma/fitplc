@@ -2,18 +2,18 @@
 % Please edit documentation in R/fitcond.R, R/fitplc.R, R/fitplcs.R
 \name{fitcond}
 \alias{fitcond}
-\alias{fitconds}
 \alias{fitplc}
 \alias{fitplcs}
+\alias{fitconds}
 \title{Fit a PLC curve}
 \usage{
 fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
-  WP_Kmax = NULL, ...)
+  WP_Kmax = NULL, rescale_Px = FALSE, ...)
 
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
-  random = NULL, model = c("Weibull", "sigmoidal"), x = 50,
+  random = NULL, model = c("Weibull", "sigmoidal", "loess"), x = 50,
   coverage = 0.95, bootci = TRUE, nboot = 999, quiet = TRUE,
-  startvalues = NULL, ...)
+  startvalues = NULL, shift_zero_min = FALSE, ...)
 
 fitplcs(dfr, group, ...)
 
@@ -27,6 +27,8 @@ fitconds(dfr, group, ...)
 \item{Kmax}{Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.}
 
 \item{WP_Kmax}{Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.}
+
+\item{\dots}{Further parameters passed to \code{fitplc}.}
 
 \item{weights}{A variable used as weights that must be present in the dataframe (unquoted, see examples).}
 
@@ -46,9 +48,11 @@ fitconds(dfr, group, ...)
 
 \item{startvalues}{Obsolete - starting values for Weibull now estimated from sigmoidal model fit.}
 
+\item{shift_zero_min}{Logical (default FALSE). If TRUE, shifts the water potential data so that the highest (least negative) value measured is set to zero. This has consequences for estimation of Kmax, and is only used for \code{fitcond}.}
+
 \item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
 
-\item{\dots}{Further parameters passed to \code{fitplc}.}
+\item{recale_Px}{Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). Identical to #' \code{sigmoid_rescale_Px} argument in \code{\link{getPx}}.}
 }
 \description{
 Fit a curve to measurements of stem or leaf conductivity at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc} function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic  conductance data, for example), use the \code{fitcond} function. You can choose to either fit the Weibull function (the default), or the sigmoidal-exponential model. See Details and Examples for more information on how to use these functions. 
@@ -164,4 +168,3 @@ fitr <- fitplc(dfr1, random=Branch)
 # Visualize the random effects.
 plot(fitr, plotrandom=TRUE)
 }
-

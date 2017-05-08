@@ -24,4 +24,3 @@ curve(fweibull(x, SX=30, PX=2), from=0, to=5)
 \references{
 Ogle, K., Barber, J.J., Willson, C., Thompson, B., 2009. Hierarchical statistical modeling of xylem vulnerability to cavitation. New Phytologist 182, 541-554.
 }
-

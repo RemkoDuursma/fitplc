@@ -14,4 +14,3 @@
 \description{
 Percent loss conductivity as a function of water potential for three species.
 }
-

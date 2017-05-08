@@ -29,4 +29,3 @@ curve(fsigmoidal(x, PX=3, a=4*(40/100)), add=TRUE, col="red")
 \references{
 Pammenter, N.W., Willigen, C.V. der, 1998. A mathematical and statistical analysis of the curves illustrating vulnerability of xylem to cavitation. Tree Physiol 18, 589-593. doi:10.1093/treephys/18.8-9.589
 }
-
