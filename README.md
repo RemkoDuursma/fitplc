@@ -39,9 +39,3 @@ library(fitplc)
 
 Windows users must have [Rtools](http://cran.r-project.org/bin/windows/Rtools/) installed for this to work.
 
-
-## Example
-
-Example for a leaf vulnerability curve.
-
-![leafvulexample](https://bitbucket.org/remkoduursma/fitplc/raw/master/test/plcfitexample.jpg)
