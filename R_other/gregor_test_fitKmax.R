@@ -104,3 +104,20 @@ sig <- sapply(l, function(x)summary(x$fit)$sigma)
 plot(vals, sig)
 
 
+
+
+f <- fitcond(dat, Kmax=40, boot=TRUE, model="sigmoidal")
+
+f <- fitcond(dat, Kmax=40, boot=TRUE, model="loess")
+
+
+x <- rnorm(100)
+y <- x + rnorm(100)
+dat <- data.frame(x=x, y=y)
+l <- loess(y ~ x, data=dat)
+
+
+
+
+
+

@@ -240,10 +240,12 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
 #'@rdname plot.plcfit
 #'@importFrom grDevices rainbow
 plot.manyplcfit <- function(x, what=c("relk","embol","PLC"), 
-                            onepanel=FALSE, linecol=NULL, 
+                            onepanel=FALSE, 
+                            linecol=NULL, 
                             pointcol=NULL,
                             pch=19, 
-                            legend=TRUE, legendwhere="topright", ...){
+                            legend=TRUE, 
+                            legendwhere="topright", ...){
   
   what <- match.arg(what)
   if(what == "embol")what <- "PLC"

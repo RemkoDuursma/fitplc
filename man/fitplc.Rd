@@ -13,7 +13,7 @@ fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = c("Weibull", "sigmoidal", "loess"), x = 50,
   coverage = 0.95, bootci = TRUE, nboot = 999, quiet = TRUE,
-  startvalues = NULL, shift_zero_min = FALSE, ...)
+  startvalues = NULL, shift_zero_min = FALSE, loess_span = 0.7, ...)
 
 fitplcs(dfr, group, ...)
 
@@ -27,6 +27,8 @@ fitconds(dfr, group, ...)
 \item{Kmax}{Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.}
 
 \item{WP_Kmax}{Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.}
+
+\item{rescale_Px}{Logical (default FALSE). If TRUE, rescales calculation of Px relative to the fitted value of conductance/PLC at the maximum (least negative) water potential in the dataset. Use this argument only when you know exactly what that means. Identical to \code{rescale_Px} argument in \code{\link{getPx}}.}
 
 \item{\dots}{Further parameters passed to \code{fitplc}.}
 
@@ -50,9 +52,9 @@ fitconds(dfr, group, ...)
 
 \item{shift_zero_min}{Logical (default FALSE). If TRUE, shifts the water potential data so that the highest (least negative) value measured is set to zero. This has consequences for estimation of Kmax, and is only used for \code{fitcond}.}
 
-\item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
+\item{loess_span}{Only used when \code{model="loess"}, the span parameter setting the desired degree of smoothness (see \code{\link{loess}}).}
 
-\item{recale_Px}{Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). Identical to #' \code{sigmoid_rescale_Px} argument in \code{\link{getPx}}.}
+\item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
 }
 \description{
 Fit a curve to measurements of stem or leaf conductivity at various water potentials. If measurements are organized as 'percent loss conductivity' (PLC), use the \code{fitplc} function. If they are organized as the actual conductance or conductivity (as is common for leaf hydraulic  conductance data, for example), use the \code{fitcond} function. You can choose to either fit the Weibull function (the default), or the sigmoidal-exponential model. See Details and Examples for more information on how to use these functions. 

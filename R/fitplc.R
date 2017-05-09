@@ -20,8 +20,9 @@
 #' @param quiet Logical (default FALSE), if TRUE, don't print any messages.
 #' @param Kmax Maximum conduct(ance)(ivity), optional (and only when using \code{fitcond}). See Examples.
 #' @param WP_Kmax Water potential above which Kmax will be calculated from the data. Optional (and only when using \code{fitcond}). See Examples.
-#' @param recale_Px Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). Identical to #' \code{sigmoid_rescale_Px} argument in \code{\link{getPx}}.
+#' @param rescale_Px Logical (default FALSE). If TRUE, rescales calculation of Px relative to the fitted value of conductance/PLC at the maximum (least negative) water potential in the dataset. Use this argument only when you know exactly what that means. Identical to \code{rescale_Px} argument in \code{\link{getPx}}.
 #' @param shift_zero_min Logical (default FALSE). If TRUE, shifts the water potential data so that the highest (least negative) value measured is set to zero. This has consequences for estimation of Kmax, and is only used for \code{fitcond}. 
+#' @param loess_span Only used when \code{model="loess"}, the span parameter setting the desired degree of smoothness (see \code{\link{loess}}).
 #'
 #' @details 
 #' \strong{Models} - 
@@ -54,6 +55,8 @@
 #' @importFrom graphics text
 #' @importFrom stats lm
 #' @importFrom nlme lme
+#' @importFrom stats loess
+#' @importFrom stats resid
 #' @rdname fitplc
 #' 
 #' @examples
@@ -150,6 +153,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    quiet=TRUE,
                    startvalues=NULL,
                    shift_zero_min = FALSE,
+                   loess_span = 0.7, 
                    ...){
     
     
@@ -225,9 +229,21 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Data$minP <- -Data$P  # negative valued water potential
     
     if(model == "loess"){
-      f <- do_loess_fit(Data, span=0.75)
       
-      cf <- loessfit_coefs(f, x=x)
+      fit <- do_loess_fit(Data, span=loess_span)
+      pred <- get_loess_pred(fit, coverage)
+      
+      ml_Px <- get_px_loessfit(pred, x)
+      boot_Px <- boot_px_loess(fit, Data, B=999, loess_span, x)
+      
+      cipars <- rbind(c(NA, NA, NA),
+                      c(ml_Px, boot_ci(boot_Px, coverage)))
+      
+      dimnames(cipars) <- list(c("SX","PX"), 
+                               c("Estimate", ci_names("Boot",coverage)))
+      l <- list(fit=fit, pred=pred, 
+                cipars=cipars, data=Data, x=x, 
+                Kmax=Kmax)
     }
     
     if(model == "sigmoidal"){
@@ -260,14 +276,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         
         fit <- f$fit
         
-      
-        
       } else {
-        # with random effect
         
-        #--> to subfunction
-        # This is necessary - might have to revisit this method.
-        #Data$PLCf <- pmax(0.1, pmin(99.9, Data$PLC))
+        # With random effect
         fit <- do_sigmoid_lme_fit(Data, W)
         
         Px_ci <- deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
@@ -277,12 +288,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
         cipars <- rbind(Sx_ci, Px_ci)
         cipars$SE <- NULL
         dimnames(cipars) <- list(c("SX","PX"),
-		                         c("Estimate",
-		                           sprintf("Norm - %s",label_lowci(coverage)),
-		                           sprintf("Norm - %s",label_upci(coverage))))
-        
-        #--> to here
-        
+		                         c("Estimate", ci_names("Norm",coverage)))
+		                           
         predran <- lapply(split(Data, Data$G), function(x){
           
           ps <- seq_within(x$minP, n=101)
@@ -495,7 +502,7 @@ sigfit_coefs <- function(c1,c2,x){
 
 get_boot_pred_sigmoid <- function(f, data, coverage){
   
-  preddfr <- data.frame(minP=seq(min(data$minP), max(data$minP), length=101))
+  preddfr <- data.frame(minP=seq_within(data$minP))
   
   normpred <- sigmoid_untrans(predict(f$fit, preddfr, interval="none"))
   
@@ -512,14 +519,68 @@ get_boot_pred_sigmoid <- function(f, data, coverage){
 
 do_loess_fit <- function(data, span = 0.75, W=NULL, boot=FALSE, nboot=1000){
 
-  if(!is.null(weights)){
-    fit <- loess(relK ~ P, data=data, span=span, weights=W)
+  if(!is.null(W)){
+    fit <- loess(relK ~ P, data=data, span=span, weights=W, degree=1)
   } else {
-    fit <- loess(relK ~ P, data=data, span=span)
+    fit <- loess(relK ~ P, data=data, span=span, degree=1)
   }
   
 return(fit)
 }
+
+
+get_loess_pred <- function(fit, coverage){
+ 
+  preddf <- data.frame(P=seq_within(fit$x))
+  
+  alpha <- 1 - coverage
+  qv <- coverage + alpha/2
+  
+  normpred <- predict(fit, preddf, se=TRUE)
+  
+  normpred$lwr <- with(normpred, fit - qt(qv, df)*se.fit)
+  normpred$upr <- with(normpred, fit + qt(qv, df)*se.fit)
+  
+return(data.frame(x=preddf$P, fit=normpred$fit, lwr=normpred$lwr, upr=normpred$upr))  
+}
+
+
+# get Px from a fitted and predicted loess model object
+get_px_loessfit <- function(pred, x){
+  
+  K0 <- pred$fit[which.min(pred$x)]
+  target <- (x/100) * K0
+  
+  px <- approx(x=pred$fit, y=pred$x, xout=target)$y
+  
+return(px)
+}
+
+boot_px_loess <- function(fit, Data, B=999, span, x){
+  
+  rws <- seq(length(resid(fit)))
+  
+  px <- c()
+  for(i in 1:B){
+    u <- update(fit, data=Data[sample(rws, replace=TRUE),], span=span)
+    p <- get_loess_pred(u, coverage=0.95)
+    px[i] <- get_px_loessfit(p, x)
+  }
+  
+  # Missing value when Px not actually reached.
+  ii <- is.na(px)
+  if(any(ii)){
+    px <- px[!ii]
+    if(sum(ii) > 0.1*B){
+      warning("More than 10% of bootstrap replicates produced missing value - CI on Px probably not reliable.")
+    }
+  } 
+  
+return(px)
+}
+
+
+
 
 
 

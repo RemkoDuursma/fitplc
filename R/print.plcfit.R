@@ -5,7 +5,11 @@ print.plcfit <- function(x,...){
   cat("-------------------------------------------------\n\n")
   
   if(x$condfit){
-    cat("Fit to unscaled conductance or conductivity data.\nKmax = ",x$Kmax,"\n\n")
+    if(x$rescale_Px){
+      cat("Fit to unscaled conductance or conductivity data.\nPx scaled to K0, not Kmax\nK0 = ",x$K0,"\n\n")
+    } else {
+      cat("Fit to unscaled conductance or conductivity data.\nKmax = ",x$Kmax,"\n\n")
+    }
   }
   if(x$fitran){
     cat("Random effects estimated for ",x$ranvar,"\n")

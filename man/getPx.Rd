@@ -4,7 +4,7 @@
 \alias{getPx}
 \title{Extract Px from fitted objects}
 \usage{
-getPx(object, x = 50, coverage = 0.95, sigmoid_rescale_Px = FALSE)
+getPx(object, x = 50, coverage = 0.95, rescale_Px = FALSE)
 }
 \arguments{
 \item{object}{Object returned by \code{\link{fitplc}}}
@@ -13,7 +13,7 @@ getPx(object, x = 50, coverage = 0.95, sigmoid_rescale_Px = FALSE)
 
 \item{coverage}{The desired coverage of the confidence interval (0.95 is the default).}
 
-\item{sigmoid_rescale_Px}{Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax).}
+\item{rescale_Px}{Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax).}
 }
 \description{
 Extract esimates of Px from an object returned by \code{\link{fitplc}}. This allows extraction of estimates of P88 or other values when the fit estimated P50 (or other), for example. When the Weibull model is used, it is especially recommended to fit the P50 and estimate other points of the curve with \code{getPx}. 
