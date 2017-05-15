@@ -156,12 +156,16 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
       }
       if(citype == "polygon"){
         with(x$pred, addpoly(xsign * x, multiplier * lwr, multiplier * upr, col=cicol))
+        
         # replot points
         if(plotdata){
           with(x, {
             points(xsign * data$P, multiplier * data$Y, pch=pch, type=type, col=pointcol, ...)
           })
         }
+        
+        # replot box
+        box()
       }
       
     }
