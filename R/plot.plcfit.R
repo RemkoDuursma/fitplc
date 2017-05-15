@@ -28,7 +28,7 @@
 #' @param \dots Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})
 #' @export
 #' @rdname plot.plcfit
-#' @importFrom graphics abline mtext plot
+#' @importFrom graphics abline mtext plot box
 #' @importFrom stats approx coef confint
 plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19, 
                         plotPx=TRUE, plotci=TRUE, plotdata=TRUE, plotfit=TRUE, add=FALSE,

@@ -1,11 +1,13 @@
 #' Extract Px from fitted objects
-#' @description Extract esimates of Px from an object returned by \code{\link{fitplc}}. This allows extraction of estimates of P88 or other values when the fit estimated P50 (or other), for example. When the Weibull model is used, it is especially recommended to fit the P50 and estimate other points of the curve with \code{getPx}. 
+#' @description Extract esimates of Px from an object returned by \code{\link{fitplc}}, \code{\link{fitplcs}}, \code{\link{fitcond}} or \code{\link{fitconds}}. This function allows extraction of estimates of P88 or other values when the fit estimated P50 (or other). 
 #' 
-#' See examples for use of this function. Note that the confidence interval is based on the bootstrap resampling performed by \code{\link{fitplc}}. This function only works when \code{bootci=TRUE} when the curve was fit.
-#' @param object Object returned by \code{\link{fitplc}}
-#' @param x The x in Px, that is, if P50 should be returned, x=50.
+#' With the Weibull model, it appears to be more robust to set \code{x=50} when fitting the curve, and extracting other points with \code{getPx}.
+#' 
+#' See examples for use of this function. Note that the confidence interval is based on the bootstrap resampling performed by \code{\link{fitplc}}. If the bootstrap was not performed durinf the fit (i.e. \code{boot=FALSE} in \code{fitplc} or elsewhere), it only returns the fitted values, and not the confidence intervals.
+#' @param object Object returned by any of the fitting functions (e.g. \code{\link{fitplc}})
+#' @param x The x in Px, that is, if P50 should be returned, x=50. Can be a vector, to return multiple points at once.
 #' @param coverage The desired coverage of the confidence interval (0.95 is the default).
-#' @param rescale_Px Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax).
+#' @param rescale_Px Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). If you fitted \code{fitcond} with \code{rescale_Px = TRUE}, make sure to set TRUE here as well to be consistent (it is not assumed from the fitted model, yet).
 #' @details Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). A better approach is to only report the CI and not the SE.
 #' 
 #' Sometimes the upper CI cannot be calculated and will be reported as \code{NA}. This indicates that the upper confidence bound is outside the range of the data, and can therefore not be reliably reported. It is especially common when \code{x} is large, say for P88. 
@@ -19,8 +21,15 @@
 #' # and should be interpreted as falling outside the range of the data.
 #' getPx(somefit, x=c(12,88))
 #' 
+#' # Extract P88 from multiple fitted curves
+#' fits <- fitplcs(stemvul, "Species", boot=FALSE)
+#' getPx(fits, 88)
+#' 
 #'@export
-getPx <- function(object, x=50, coverage=0.95, rescale_Px = FALSE){
+getPx <- function(object, ...)UseMethod("getPx")
+
+#'@export
+getPx.default <- function(object, x=50, coverage=0.95, rescale_Px = FALSE){
   
   resc_cons <- 1
   
@@ -71,4 +80,15 @@ getPx <- function(object, x=50, coverage=0.95, rescale_Px = FALSE){
   names(l)[1:2] <- c("x","Px")
   
 return(l)
+}
+
+
+#'@export
+getPx.manyplcfit <- function(object,  ...){
+  
+  l <- lapply(object, getPx, ...)
+  dfr <- cbind(data.frame(Group=names(l)),
+               do.call(rbind, l))
+  rownames(dfr) <- NULL
+return(dfr)
 }
