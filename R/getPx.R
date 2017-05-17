@@ -8,6 +8,7 @@
 #' @param x The x in Px, that is, if P50 should be returned, x=50. Can be a vector, to return multiple points at once.
 #' @param coverage The desired coverage of the confidence interval (0.95 is the default).
 #' @param rescale_Px Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). If you fitted \code{fitcond} with \code{rescale_Px = TRUE}, make sure to set TRUE here as well to be consistent (it is not assumed from the fitted model, yet).
+#' @param \dots Further arguments passed to methods (none yet).
 #' @details Note that this function does not return a standard error, because the bootstrap confidence interval will be rarely symmetrical. If you like, you can calculate it as the mean of the half CI width (and note it as an 'approximate standard error'). A better approach is to only report the CI and not the SE.
 #' 
 #' Sometimes the upper CI cannot be calculated and will be reported as \code{NA}. This indicates that the upper confidence bound is outside the range of the data, and can therefore not be reliably reported. It is especially common when \code{x} is large, say for P88. 
@@ -26,10 +27,11 @@
 #' getPx(fits, 88)
 #' 
 #'@export
-getPx <- function(object, ...)UseMethod("getPx")
+getPx <- function(object, x=50, coverage=0.95, rescale_Px = FALSE, ...)UseMethod("getPx")
 
 #'@export
-getPx.default <- function(object, x=50, coverage=0.95, rescale_Px = FALSE){
+#'@describeIn getPx Calculate Px for a single fitted curve.
+getPx.default <- function(object, x=50, coverage=0.95, rescale_Px = FALSE, ...){
   
   resc_cons <- 1
   
@@ -84,6 +86,7 @@ return(l)
 
 
 #'@export
+#'@describeIn getPx Calculate Px for many fitted curves.
 getPx.manyplcfit <- function(object,  ...){
   
   l <- lapply(object, getPx, ...)

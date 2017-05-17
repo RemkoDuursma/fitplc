@@ -2,9 +2,16 @@
 % Please edit documentation in R/getPx.R
 \name{getPx}
 \alias{getPx}
+\alias{getPx.default}
+\alias{getPx.manyplcfit}
 \title{Extract Px from fitted objects}
 \usage{
-getPx(object, ...)
+getPx(object, x = 50, coverage = 0.95, rescale_Px = FALSE, ...)
+
+\method{getPx}{default}(object, x = 50, coverage = 0.95,
+  rescale_Px = FALSE, ...)
+
+\method{getPx}{manyplcfit}(object, ...)
 }
 \arguments{
 \item{object}{Object returned by any of the fitting functions (e.g. \code{\link{fitplc}})}
@@ -14,6 +21,8 @@ getPx(object, ...)
 \item{coverage}{The desired coverage of the confidence interval (0.95 is the default).}
 
 \item{rescale_Px}{Logical (default FALSE). If TRUE, rescales calculation of Px for the sigmoidal model, by finding water potential relative to K at zero water potential (which for the sigmoidal model, is not equal to Kmax). If you fitted \code{fitcond} with \code{rescale_Px = TRUE}, make sure to set TRUE here as well to be consistent (it is not assumed from the fitted model, yet).}
+
+\item{\dots}{Further arguments passed to methods (none yet).}
 }
 \description{
 Extract esimates of Px from an object returned by \code{\link{fitplc}}, \code{\link{fitplcs}}, \code{\link{fitcond}} or \code{\link{fitconds}}. This function allows extraction of estimates of P88 or other values when the fit estimated P50 (or other). 
@@ -27,6 +36,13 @@ Note that this function does not return a standard error, because the bootstrap 
 
 Sometimes the upper CI cannot be calculated and will be reported as \code{NA}. This indicates that the upper confidence bound is outside the range of the data, and can therefore not be reliably reported. It is especially common when \code{x} is large, say for P88.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{default}: Calculate Px for a single fitted curve.
+
+\item \code{manyplcfit}: Calculate Px for many fitted curves.
+}}
+
 \examples{
 # A fit
 somefit <- fitplc(stemvul, x=50, model="sigmoid")
