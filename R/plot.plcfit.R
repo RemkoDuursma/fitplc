@@ -17,6 +17,7 @@
 #' @param citype Either 'polygon' (default), or 'lines', specifying formatting of the confidence interval in the plot.
 #' @param linecol The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).
 #' @param linetype Line type for fitted curve (see options for \code{lty} in \code{\link{par}}).
+#' @param linelwd Width of the line (see options for \code{lwd} in \code{\link{par}}).
 #' @param pointcol The color(s) of the data points.
 #' @param linecol2 The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).
 #' @param cicol The color of the confidence interval band (if plotted).
@@ -40,6 +41,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         pointcol="black",
                         linecol="black",
                         linetype=1,
+                        linelwd=1,
                         linecol2="blue",
                         pxlinecol="red",
                         pxcex=0.7,
@@ -171,7 +173,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     }
     if(plotfit){
       with(x$pred,{
-        lines(xsign * x, multiplier * fit, type='l', lty=linetype, col=linecol)
+        lines(xsign * x, multiplier * fit, type='l', lty=linetype, col=linecol, lwd=linelwd)
       })
     }
   }
@@ -266,7 +268,7 @@ plot.manyplcfit <- function(x, what=c("relk","embol","PLC"),
     if(is.null(linecol))linecol <- rainbow(np)
     if(is.null(pointcol))pointcol <- rainbow(np)
     
-    plot(x[[1]], pch=pch[1], pointcol=pointcol[1], what=what,...)
+    plot(x[[1]], pch=pch[1], pointcol=pointcol[1], linecol=linecol[1], what=what,...)
     if(np > 1){
       for(i in 2:np){
         plot(x[[i]], add=TRUE, linecol=linecol[i], pointcol=pointcol[i], pch=pch[i], what=what, ...)

@@ -10,10 +10,10 @@
   plotfit = TRUE, add = FALSE, multiplier = NULL, px_ci = c("bootstrap",
   "parametric", "none"), px_ci_type = c("vertical", "horizontal"),
   px_ci_label = TRUE, plotrandom = FALSE, pointcol = "black",
-  linecol = "black", linetype = 1, linecol2 = "blue", pxlinecol = "red",
-  pxcex = 0.7, citype = c("polygon", "lines"), cicol = alpha("lightgrey",
-  0.8), what = c("relk", "PLC", "embol"), selines = NULL,
-  xaxis = c("positive", "negative"), ...)
+  linecol = "black", linetype = 1, linelwd = 1, linecol2 = "blue",
+  pxlinecol = "red", pxcex = 0.7, citype = c("polygon", "lines"),
+  cicol = alpha("lightgrey", 0.8), what = c("relk", "PLC", "embol"),
+  selines = NULL, xaxis = c("positive", "negative"), ...)
 
 \method{plot}{manyplcfit}(x, what = c("relk", "embol", "PLC"),
   onepanel = FALSE, linecol = NULL, pointcol = NULL, pch = 19,
@@ -53,6 +53,8 @@
 \item{linecol}{The color(s) of the fitted curve (or color of the random effects curves if plotrandom=TRUE).}
 
 \item{linetype}{Line type for fitted curve (see options for \code{lty} in \code{\link{par}}).}
+
+\item{linelwd}{Width of the line (see options for \code{lwd} in \code{\link{par}}).}
 
 \item{linecol2}{The color of the fixed effects curve (if plotrandom=TRUE; otherwise ignored).}
 
