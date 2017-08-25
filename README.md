@@ -2,7 +2,7 @@ Fit vulnerability curves in R
 --------------------------------------
 
 [![](http://www.r-pkg.org/badges/version/fitplc)](http://cran.rstudio.com/web/packages/fitplc/index.html) ![](http://cranlogs.r-pkg.org/badges/fitplc) ![](https://img.shields.io/bitbucket/issues/remkoduursma/fitplc.svg)
-![](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master) ![](https://img.shields.io/codecov/c/github/RemkoDuursma/fitplc/master.svg)
+![](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master) [![Coverage Status](https://img.shields.io/codecov/c/github/RemkoDuursma/fitplc/master.svg)](https://codecov.io/github/RemkoDuursma/fitplc?branch=master)
 
 
 This page describes the `fitplc` package, which can be used to fit curves to measurements of plant stem, leaf or root conductivity (or conductance) at varying water potentials (so called 'PLC curves'). 
