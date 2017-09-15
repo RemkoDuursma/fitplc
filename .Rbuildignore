@@ -4,3 +4,4 @@ test/
 R_other/
 README.md
 .travis.yml
+^C:\repos\fitplc\docs$
