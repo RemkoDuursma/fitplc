@@ -11,8 +11,8 @@
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -63,7 +63,12 @@
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://bitbucket.org/remkoduursma/fitplc">
+    <span class="fa fa-bitbucket fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -220,9 +225,9 @@ If the <code>random</code> argument specifies a factor variable present in the d
 #&gt; </div><div class='input'>
 <span class='co'># Make a standard plot. The default plot is 'relative conductivity',</span>
 <span class='co'># (which is 1.0 where PLC = 0). For plotting options, see ?plot.plcfit</span>
-<span class='fu'>plot</span>(<span class='no'>pfit</span>)</div><div class='img'><img src='fitplc-25.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
+<span class='fu'>plot</span>(<span class='no'>pfit</span>)</div><div class='img'><img src='fitplc-19.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
 <span class='co'># Or plot the percent embolism</span>
-<span class='fu'>plot</span>(<span class='no'>pfit</span>, <span class='kw'>what</span><span class='kw'>=</span><span class='st'>"embol"</span>)</div><div class='img'><img src='fitplc-26.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
+<span class='fu'>plot</span>(<span class='no'>pfit</span>, <span class='kw'>what</span><span class='kw'>=</span><span class='st'>"embol"</span>)</div><div class='img'><img src='fitplc-20.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
 <span class='co'># Get the coefficients of the fit.</span>
 <span class='fu'>coef</span>(<span class='no'>pfit</span>)</div><div class='output co'>#&gt;     Estimate Norm - 2.5% Norm - 97.5% Boot - 2.5% Boot - 97.5%
 #&gt; SX 27.639042   19.016029    38.636204   16.745048    35.622913
@@ -231,7 +236,7 @@ If the <code>random</code> argument specifies a factor variable present in the d
 <span class='co'># Note that varnames specification above is the same as the default, so it </span>
 <span class='co'># can be omitted.</span>
 <span class='no'>pfit2</span> <span class='kw'>&lt;-</span> <span class='fu'>fitplc</span>(<span class='no'>dfr1</span>, <span class='kw'>model</span><span class='kw'>=</span><span class='st'>"sigmoid"</span>)
-<span class='fu'>plot</span>(<span class='no'>pfit2</span>)</div><div class='img'><img src='fitplc-27.png' alt='' width='700' height='432.632880098887' /></div><div class='input'><span class='fu'>coef</span>(<span class='no'>pfit2</span>)</div><div class='output co'>#&gt;     Estimate Boot - 2.5% Boot - 97.5%
+<span class='fu'>plot</span>(<span class='no'>pfit2</span>)</div><div class='img'><img src='fitplc-21.png' alt='' width='700' height='432.632880098887' /></div><div class='input'><span class='fu'>coef</span>(<span class='no'>pfit2</span>)</div><div class='output co'>#&gt;     Estimate Boot - 2.5% Boot - 97.5%
 #&gt; SX 25.287577   17.559690    33.264051
 #&gt; PX  2.857665    2.537777     3.194784</div><div class='input'>
 <span class='co'># 2. Fit all species in the dataset.</span>
@@ -241,7 +246,7 @@ If the <code>random</code> argument specifies a factor variable present in the d
 <span class='no'>allfit</span> <span class='kw'>&lt;-</span> <span class='fu'>fitplcs</span>(<span class='no'>stemvul</span>, <span class='st'>"Species"</span>, <span class='kw'>varnames</span><span class='kw'>=</span><span class='fu'>c</span>(<span class='kw'>PLC</span><span class='kw'>=</span><span class='st'>"PLC"</span>, <span class='kw'>WP</span><span class='kw'>=</span><span class='st'>"MPa"</span>), <span class='kw'>nboot</span><span class='kw'>=</span><span class='fl'>50</span>)
 
 <span class='co'># 3. Plot the fits.</span>
-<span class='fu'>plot</span>(<span class='no'>allfit</span>, <span class='kw'>onepanel</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>plotci</span><span class='kw'>=</span><span class='fl'>FALSE</span>, <span class='kw'>px_ci</span><span class='kw'>=</span><span class='st'>"none"</span>, <span class='kw'>pxlinecol</span><span class='kw'>=</span><span class='st'>"dimgrey"</span>)</div><div class='img'><img src='fitplc-28.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
+<span class='fu'>plot</span>(<span class='no'>allfit</span>, <span class='kw'>onepanel</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>plotci</span><span class='kw'>=</span><span class='fl'>FALSE</span>, <span class='kw'>px_ci</span><span class='kw'>=</span><span class='st'>"none"</span>, <span class='kw'>pxlinecol</span><span class='kw'>=</span><span class='st'>"dimgrey"</span>)</div><div class='img'><img src='fitplc-22.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
 <span class='co'># Coefficients show the estimates and 95% CI (given by 'lower' and 'upper')</span>
 <span class='co'># Based on the CI's, species differences can be decided.</span>
 <span class='fu'>coef</span>(<span class='no'>allfit</span>)</div><div class='output co'>#&gt;   Group Parameter  Estimate Norm - 2.5% Norm - 97.5% Boot - 2.5% Boot - 97.5%
@@ -277,14 +282,14 @@ If the <code>random</code> argument specifies a factor variable present in the d
 
 <span class='co'># Fit multiple conductivity curves at once (bootstrap omitted for speed).</span>
 <span class='no'>kfits3</span> <span class='kw'>&lt;-</span> <span class='fu'>fitconds</span>(<span class='no'>stemvul</span>, <span class='st'>"Species"</span>, <span class='kw'>varnames</span><span class='kw'>=</span><span class='fu'>list</span>(<span class='kw'>K</span><span class='kw'>=</span><span class='st'>"Cond"</span>, <span class='kw'>WP</span><span class='kw'>=</span><span class='st'>"MPa"</span>), <span class='kw'>WP_Kmax</span><span class='kw'>=</span>-<span class='fl'>0.3</span>, <span class='kw'>boot</span><span class='kw'>=</span><span class='fl'>FALSE</span>)
-<span class='fu'>plot</span>(<span class='no'>kfits3</span>, <span class='kw'>onepanel</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>ylim</span><span class='kw'>=</span><span class='fu'>c</span>(<span class='fl'>0</span>,<span class='fl'>12</span>), <span class='kw'>px_ci</span><span class='kw'>=</span><span class='st'>"none"</span>)</div><div class='img'><img src='fitplc-29.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
+<span class='fu'>plot</span>(<span class='no'>kfits3</span>, <span class='kw'>onepanel</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>ylim</span><span class='kw'>=</span><span class='fu'>c</span>(<span class='fl'>0</span>,<span class='fl'>12</span>), <span class='kw'>px_ci</span><span class='kw'>=</span><span class='st'>"none"</span>)</div><div class='img'><img src='fitplc-23.png' alt='' width='700' height='432.632880098887' /></div><div class='input'>
 <span class='co'># 5. Random effects.</span>
 <span class='co'># This example takes into account the fact that the individual data points for a species are not </span>
 <span class='co'># independent, but rather clustered by branch. </span>
 <span class='no'>fitr</span> <span class='kw'>&lt;-</span> <span class='fu'>fitplc</span>(<span class='no'>dfr1</span>, <span class='kw'>random</span><span class='kw'>=</span><span class='no'>Branch</span>)
 
 <span class='co'># Visualize the random effects.</span>
-<span class='fu'>plot</span>(<span class='no'>fitr</span>, <span class='kw'>plotrandom</span><span class='kw'>=</span><span class='fl'>TRUE</span>)</div><div class='img'><img src='fitplc-30.png' alt='' width='700' height='432.632880098887' /></div></pre>
+<span class='fu'>plot</span>(<span class='no'>fitr</span>, <span class='kw'>plotrandom</span><span class='kw'>=</span><span class='fl'>TRUE</span>)</div><div class='img'><img src='fitplc-24.png' alt='' width='700' height='432.632880098887' /></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -301,7 +306,7 @@ If the <code>random</code> argument specifies a factor variable present in the d
 
       <footer>
       <div class="copyright">
-  <p>Developed by Remko Duursma.</p>
+  <p>Developed by <a href='http://www.remkoduursma.com'>Remko Duursma</a>.</p>
 </div>
 
 <div class="pkgdown">

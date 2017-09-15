@@ -5,3 +5,4 @@ R_other/
 README.md
 .travis.yml
 ^C:\repos\fitplc\docs$
+^_pkgdown\.yml$
