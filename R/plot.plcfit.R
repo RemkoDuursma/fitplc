@@ -6,7 +6,7 @@
 #' @param px_ci Option for the confidence interval around Px, either 'parametric' (confidence interval computed with \code{\link{confint}}), 'bootstrap' (computed with non-parametric bootstrap) or 'none' (no plotting of the confidence interval) (formerly argument was called \code{selines})
 #' @param px_ci_type Either 'vertical' (default), or 'horizontal', to plot confidence limits for Px.
 #' @param px_ci_label Logical (default TRUE), whether to write a label next to the CI for Px.
-#' @param plotrandom Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
+#' @param plotrandom Logical. If TRUE (the default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).
 #' @param multiplier Multiply the scaled data (for plotting).
 #' @param x A fitted curve returned by \code{fitplc}
 #' @param plotPx Logical (default TRUE), whether to plot a vertical line for the P50.

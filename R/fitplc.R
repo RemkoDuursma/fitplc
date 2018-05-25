@@ -154,6 +154,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    startvalues=NULL,
                    shift_zero_min = FALSE,
                    loess_span = 0.7, 
+                   msMaxIter = 1000,
                    ...){
     
     
@@ -338,6 +339,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                        start=list(fixed=c(SX=sp$Sx, 
                                           PX=sp$Px)),
                        weights=W,
+                       control=nlmeControl(msMaxIter = msMaxIter, eval.max=1e06),
                        data=Data)
           }
         
@@ -353,7 +355,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                           random= SX + PX ~ 1|G,
                           start=list(fixed=c(SX=sp$Sx, 
                                              PX=sp$Px)),
-                          data=Data)
+                          data=Data,
+                          control=nlmeControl(msMaxIter = msMaxIter, eval.max=1e06))
         }
       }
       if(!quiet)message("done.")
@@ -538,10 +541,14 @@ get_loess_pred <- function(fit, coverage){
   
   normpred <- predict(fit, preddf, se=TRUE)
   
-  normpred$lwr <- with(normpred, fit - qt(qv, df)*se.fit)
-  normpred$upr <- with(normpred, fit + qt(qv, df)*se.fit)
+  normpred <- transform(normpred,
+                        lwr = fit - qt(qv, df)*se.fit,
+                        upr = fit + qt(qv, df)*se.fit)
   
-return(data.frame(x=preddf$P, fit=normpred$fit, lwr=normpred$lwr, upr=normpred$upr))  
+return(data.frame(x = preddf$P, 
+                  fit = normpred$fit, 
+                  lwr = normpred$lwr, 
+                  upr = normpred$upr))  
 }
 
 
