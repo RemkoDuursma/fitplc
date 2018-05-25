@@ -11,6 +11,7 @@ n_boot <- 101
 f <- fitplc(dpap, x=Xval, coverage=cover, nboot=n_boot)
 g <- fitplc(dpap, bootci=FALSE, x=Xval, coverage=cover, nboot=n_boot)
 h <- fitplc(dpap, model="sigm", x=Xval, coverage=cover, nboot=n_boot)
+h4 <- fitplc(dpap, model="loess", x=Xval, coverage=cover, nboot=n_boot)
 
 k <- fitplc(stemvul, random=Species, x=Xval, coverage=cover, nboot=n_boot)
 m <- fitplc(stemvul, random=Species, model="sigm", x=Xval, coverage=cover, nboot=n_boot)
@@ -23,6 +24,9 @@ fc1 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"),
                x=Xval, coverage=cover, nboot=n_boot)
 fc2 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), 
                model="sigmoid", x=Xval, coverage=cover, nboot=n_boot)
+h3 <- fitconds(stemvul, group="Species", 
+               WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), 
+               x=Xval, model="sigmoid", coverage=cover, nboot=n_boot)
 
 
 # getPx
@@ -94,6 +98,7 @@ plot(f, xlab="Hello", ylab="Hey", ylim=c(0,2), pch=15, plotPx=FALSE,
 plot(f, px_ci="parametric")
 plot(h, px_ci="parametric")
 
+plot(k, plotrandom=TRUE)
 
 
 

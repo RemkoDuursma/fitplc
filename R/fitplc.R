@@ -541,9 +541,8 @@ get_loess_pred <- function(fit, coverage){
   
   normpred <- predict(fit, preddf, se=TRUE)
   
-  normpred <- transform(normpred,
-                        lwr = fit - qt(qv, df)*se.fit,
-                        upr = fit + qt(qv, df)*se.fit)
+  normpred$lwr <- with(normpred, fit - qt(qv, df)*se.fit)
+  normpred$upr <- with(normpred, fit + qt(qv, df)*se.fit)
   
 return(data.frame(x = preddf$P, 
                   fit = normpred$fit, 
