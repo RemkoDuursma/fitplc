@@ -99,8 +99,10 @@ plot(f, px_ci="parametric")
 plot(h, px_ci="parametric")
 
 plot(k, plotrandom=TRUE)
+plot(m, plotrandom=TRUE)
 
-
+# Jen bug, 2018-05-29
+plot(k, what="PLC", plotrandom=TRUE)
 
 
 

@@ -13,7 +13,8 @@ fitcond(dfr, varnames = c(K = "K", WP = "MPa"), Kmax = NULL,
 fitplc(dfr, varnames = c(PLC = "PLC", WP = "MPa"), weights = NULL,
   random = NULL, model = c("Weibull", "sigmoidal", "loess"), x = 50,
   coverage = 0.95, bootci = TRUE, nboot = 999, quiet = TRUE,
-  startvalues = NULL, shift_zero_min = FALSE, loess_span = 0.7, ...)
+  startvalues = NULL, shift_zero_min = FALSE, loess_span = 0.7,
+  msMaxIter = 1000, ...)
 
 fitplcs(dfr, group, ...)
 
@@ -53,6 +54,8 @@ fitconds(dfr, group, ...)
 \item{shift_zero_min}{Logical (default FALSE). If TRUE, shifts the water potential data so that the highest (least negative) value measured is set to zero. This has consequences for estimation of Kmax, and is only used for \code{fitcond}.}
 
 \item{loess_span}{Only used when \code{model="loess"}, the span parameter setting the desired degree of smoothness (see \code{\link{loess}}).}
+
+\item{msMaxIter}{Maximum iterations for \code{\link{nlminb}}. Only change when needed.}
 
 \item{group}{Character; variable in the dataframe that specifies groups. The curve will be fit for every group level.}
 }

@@ -23,6 +23,7 @@
 #' @param rescale_Px Logical (default FALSE). If TRUE, rescales calculation of Px relative to the fitted value of conductance/PLC at the maximum (least negative) water potential in the dataset. Use this argument only when you know exactly what that means. Identical to \code{rescale_Px} argument in \code{\link{getPx}}.
 #' @param shift_zero_min Logical (default FALSE). If TRUE, shifts the water potential data so that the highest (least negative) value measured is set to zero. This has consequences for estimation of Kmax, and is only used for \code{fitcond}. 
 #' @param loess_span Only used when \code{model="loess"}, the span parameter setting the desired degree of smoothness (see \code{\link{loess}}).
+#' @param msMaxIter Maximum iterations for \code{\link{nlminb}}. Only change when needed.
 #'
 #' @details 
 #' \strong{Models} - 
@@ -48,6 +49,7 @@
 #' @importFrom nlme fixef
 #' @importFrom nlme nlme
 #' @importFrom nlme intervals
+#' @importFrom nlme nlmeControl
 #' @importFrom car deltaMethod
 #' @importFrom graphics par
 #' @importFrom graphics points
@@ -298,7 +300,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
           
           list(x=-ps, fit=sigmoid_untrans(unname(predict(fit, newdat)))) 
         })
-        
         ps <- seq_within(Data$minP, n=101)
         newdat <- data.frame(minP=ps, X=x)
         pred <- list(x=-ps, fit=predict(fit, newdat, level=0), ran=predran)

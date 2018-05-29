@@ -46,7 +46,7 @@
 
 \item{px_ci_label}{Logical (default TRUE), whether to write a label next to the CI for Px.}
 
-\item{plotrandom}{Logical. If TRUE (default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
+\item{plotrandom}{Logical. If TRUE (the default is FALSE), plots the predictions for the random effects (only if random effects were included in the model fit).}
 
 \item{pointcol}{The color(s) of the data points.}
 

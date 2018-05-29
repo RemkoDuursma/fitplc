@@ -128,8 +128,15 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     
     ng <- length(x$pred$ran)
     if(what=="PLC"){
-      x$pred$ran <- lapply(x$pred$ran, function(f)relk_to_plc(f$fit))
-      x$pred$fit <- relk_to_plc(x$pred$fit)
+      
+      x$pred$ran <- lapply(x$pred$ran, 
+                           function(f){
+                             f$fit <- relk_to_plc(f$fit)
+                             return(f)
+                           })
+      
+      if(!x$fitran)x$pred$fit <- relk_to_plc(x$pred$fit)
+      
     }
   }
 
@@ -179,10 +186,15 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   }
   
   if(plotrandom){
-    for(i in 1:length(x$pred$ran)){
-      with(x$pred$ran[[i]], lines(xsign * x, multiplier * fit, type='l', col=linecol))
-    }  
-    with(x$pred, lines(xsign * x, multiplier * fit, type='l', lwd=2, col=linecol2))
+    
+    for(i in seq_along(x$pred$ran)){
+      with(x$pred$ran[[i]], 
+           lines(xsign * x, multiplier * fit, 
+                 type='l', col=linecol)
+           )
+    } 
+    with(x$pred, lines(xsign * x, multiplier * fit, type='l', 
+                       lwd=2, col=linecol2))
   }
   
   if(plotPx){
