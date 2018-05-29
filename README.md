@@ -1,6 +1,6 @@
 # Fit Hydraulic Vulnerability Curves in R
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fitplc)](https://cran.r-project.org/package=fitplc) [![](https://cranlogs.r-pkg.org/badges/grand-total/fitplc)](https://CRAN.R-project.org/package=fitplc) [![Bitbucket Issues](https://img.shields.io/bitbucket/issues/remkoduursma/fitplc.svg)](https://www.bitbucket.org/remkoduursma/fitplc/issues) [![Travis-CI Build Status](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master)](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master) [![Coverage Status](https://img.shields.io/codecov/c/github/RemkoDuursma/fitplc/master.svg)](https://codecov.io/github/RemkoDuursma/fitplc?branch=master)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fitplc)](https://cran.r-project.org/package=fitplc) [![](https://cranlogs.r-pkg.org/badges/grand-total/fitplc)](https://CRAN.R-project.org/package=fitplc) [![Travis-CI Build Status](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master)](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master) [![codecov](https://codecov.io/gh/RemkoDuursma/fitplc/branch/master/graph/badge.svg)](https://codecov.io/gh/RemkoDuursma/fitplc) 
 
 
 This page describes the `fitplc` package, which can be used to fit curves to measurements of plant stem, leaf or root conductivity (or conductance) at varying water potentials (so called 'PLC curves'). 
