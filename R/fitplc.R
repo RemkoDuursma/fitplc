@@ -236,14 +236,15 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       fit <- do_loess_fit(Data, span=loess_span)
       pred <- get_loess_pred(fit, coverage)
       
-      ml_Px <- get_px_loessfit(pred, x)
-      boot_Px <- boot_px_loess(fit, Data, B=999, loess_span, x)
+      ml_Px <- get_px_loessfit(pred, x, rescale = condfit)
+      boot_Px <- boot_px_loess(fit, Data, B=999, loess_span, x, rescale = condfit)
       
       cipars <- rbind(c(NA, NA, NA),
                       c(ml_Px, boot_ci(boot_Px, coverage)))
       
       dimnames(cipars) <- list(c("SX","PX"), 
                                c("Estimate", ci_names("Boot",coverage)))
+    
       l <- list(fit=fit, pred=pred, 
                 cipars=cipars, data=Data, x=x, 
                 Kmax=Kmax)
@@ -453,9 +454,6 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
 
 do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
   
-  # This is necessary - might have to revisit this method.
-  #data$PLCf <- pmax(0.1, pmin(99.9, data$PLC))
-  
   data <- data[data$PLC < 100 & data$PLC > 0,]
 
   # Transformation as per P&vW
@@ -553,17 +551,23 @@ return(data.frame(x = preddf$P,
 
 
 # get Px from a fitted and predicted loess model object
-get_px_loessfit <- function(pred, x){
+get_px_loessfit <- function(pred, x, rescale = FALSE){
   
-  K0 <- pred$fit[which.min(pred$x)]
-  target <- (x/100) * K0
-  
-  px <- approx(x=pred$fit, y=pred$x, xout=target)$y
+  if(rescale){
+    K0 <- pred$fit[which.min(pred$x)]
+    target <- (x/100) * K0
+    
+    px <- approx(x=pred$fit, y=pred$x, xout=target)$y
+    
+  } else {
+    X <- 1 - x/100
+    px <- approx(x=pred$fit, y=pred$x, xout=X)$y
+  }
   
 return(px)
 }
 
-boot_px_loess <- function(fit, Data, B=999, span, x){
+boot_px_loess <- function(fit, Data, B=999, span, x, rescale = FALSE){
   
   rws <- seq(length(resid(fit)))
   
@@ -571,7 +575,7 @@ boot_px_loess <- function(fit, Data, B=999, span, x){
   for(i in 1:B){
     u <- update(fit, data=Data[sample(rws, replace=TRUE),], span=span)
     p <- get_loess_pred(u, coverage=0.95)
-    px[i] <- get_px_loessfit(p, x)
+    px[i] <- get_px_loessfit(p, x, rescale = rescale)
   }
   
   # Missing value when Px not actually reached.

@@ -80,8 +80,9 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     what <- "relk"
   }
   
-  if(plotrandom && !x$fitran)
+  if(plotrandom && !x$fitran){
     stop("To plot random effects predictions, refit with 'random' argument.")
+  }
   
   # Set x-axis label
   if(missing(xlab)){
@@ -122,8 +123,6 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
   # Set y-axis limit
   if(is.null(ylim))ylim <- c(0,multiplier*max(x$data$Y))
 
-  #if(is.null(ylim))ylim <- c(0,100)
-  
   if(x$fitran && plotrandom){
     
     ng <- length(x$pred$ran)

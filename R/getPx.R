@@ -44,8 +44,18 @@ getPx.default <- function(object, x=50, coverage=0.95, rescale_Px = FALSE, ...){
       sx <- coef(object)["SX","Estimate"]
       v <- (object$x - 100)*log(1 - object$x/100)
       p <- px*(log(1 - x/100)/log(1 - object$x/100))^(v/(px*sx))
-    } else {
+    
+    # Consistent with calculation in fitplc()
+    # } else if(object$model == "loess"){
+    #   
+    #   K0 <- object$pred$fit[which.min(object$pred$x)]
+    #   target <- (x/100) * K0
+    #   
+    #   p <- approx(x=object$pred$fit, y=object$pred$x, xout=target)$y
+    #   
+    # } else {
       
+    } else {  
       if(!rescale_Px){
         p <- approx(x=object$pred$fit, y=object$pred$x, xout=X)$y
       } else {
