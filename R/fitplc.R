@@ -416,7 +416,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                       data=Data, start=list(SX=sp$Sx, PX=sp$Px),
                       weights=W)
           } else {
-            nlmefit <- nlme(relK ~ fweibull(P, SX, PX, X),
+            fit <- nlme(relK ~ fweibull(P, SX, PX, X),
                        fixed=list(SX ~ 1, PX ~ 1),
                        random= SX + PX ~ 1|G,
                        start=list(fixed=c(SX=sp$Sx, 
