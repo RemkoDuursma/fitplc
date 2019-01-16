@@ -147,7 +147,7 @@
 fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
-                   model=c("Weibull","sigmoidal","loess"), 
+                   model=c("Weibull","sigmoidal","loess","nls_sigmoidal"), 
                    x=50,
                    coverage=0.95,
                    bootci=TRUE,
@@ -169,6 +169,11 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     if(!bootci && model == "sigmoidal"){
       warning("Cannot switch off bootstrap with sigmoidal model - ignored.")
       bootci <- TRUE
+    }
+    
+    if(model == "nls_sigmoidal" && x != 50){
+      warning("For nls_sigmoidal, can only set x = 50 (for now anyway).")
+      x <- 50
     }
   
     # Find out if called from fitcond.
@@ -192,6 +197,9 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       
       if(model == "loess"){
         stop("Cannot estimate random effects with the loess model.")
+      }
+      if(model == "nls_sigmoidal"){
+        stop("Random effects for sigmoidal_nls not yet implemented.")
       }
       
       G <- eval(substitute(random), dfr)
@@ -316,6 +324,79 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
 
     
     # move to subfunction
+    if(model == "nls_sigmoidal"){
+      
+      # guess starting values from sigmoidal
+      f <- do_sigmoid_fit(Data, boot=FALSE)
+      p <- coef(f$fit)
+      
+      # As in sigfit_coefs, but only partial conversion
+      a <- p[2]
+      b <- p[1]/p[2]
+      
+      # fit
+      Data$X <- x  # Necessary for bootstrap - I think.
+      if(!quiet)message("Fitting nls ...", appendLF=FALSE)
+      
+      # Weighted NLS
+      if(!is.null(W)){
+        
+        fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
+                   data=Data, start=list(a=a, b=b),
+                   weights=W)
+        
+      } else {
+        
+        # Ordinary NLS
+        fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
+                   data=Data, start=list(a=a, b=b))
+      }
+      
+      nls_sig_convert_coef <- function(coefs, x){
+        
+        a <- coefs[1]
+        b <- coefs[2]
+        Px <- ab_to_px(a, b, x)
+        
+        # Derivative of sigmoid
+        sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
+        Sx <- 100 * sig2d(Px,a,b)
+        
+      list(Px=Px, Sx=Sx)
+      }
+    
+      fit_ab <- coef(fit)
+      sp <- nls_sig_convert_coef(fit_ab, x=x)
+      
+      if(bootci){
+        pred <- predict_nls(fit, xvarname="P", interval="confidence", data=Data, 
+                            startList=list(a=fit_ab[1], b=fit_ab[2]), weights=W, 
+                            level=coverage,
+                            nboot=nboot)
+      
+        z <- apply(pred$boot, 1, nls_sig_convert_coef, x=x)
+        pred$boot <- as.data.frame(do.call(rbind, lapply(z, unlist)))
+        names(pred$boot) <- c("Px","Sx")
+        
+        cisx <- quantile(pred$boot[,"Sx"], c((1-coverage)/2, 1 - (1-coverage)/2))
+        cipx <- quantile(pred$boot[,"Px"], c((1-coverage)/2, 1 - (1-coverage)/2))
+        
+        bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
+                           dimnames=list(c("SX","PX"),
+                                         c(sprintf("Boot - %s",label_lowci(coverage)),
+                                           sprintf("Boot - %s",label_upci(coverage)))))
+        
+        cipars <- matrix(c(sp$Sx, sp$Px), ncol=1, nrow=2)
+        dimnames(cipars) <- list(c("SX","PX"), "Estimate")
+        cipars <- cbind(cipars, bootpars)
+      }
+
+      l <- list(fit=fit, pred=pred, 
+                cipars=cipars, data=Data, x=x, 
+                Kmax=Kmax)
+    }
+    
+    # move to subfunction
     if(model == "Weibull"){
     
       # guess starting values from sigmoidal
@@ -361,6 +442,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                           control=nlmeControl(msMaxIter = msMaxIter, eval.max=1e06))
         }
       }
+      
       if(!quiet)message("done.")
       
       # bootstrap
