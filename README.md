@@ -37,3 +37,20 @@ library(fitplc)
 
 Windows users must have [Rtools](http://cran.r-project.org/bin/windows/Rtools/) installed for this to work.
 
+
+## Model overview
+
+*Work in progress* : options and implementation for the various models.
+'when': is the confidence interval (via method 'ci') always calculated?
+
+Model          fitter     ci          when
+-------        -------    -------     -------
+Weibull        nls        confint     *always*
+                          boot        `bootci = TRUE`
+               nlme       intervals   *always*
+sigmoidal      lm         boot        *always*
+               lme        intervals   *always*
+loess          loess      boot        *always*
+nls_sigmoidal  nls        boot        `bootci = TRUE`
+
+
