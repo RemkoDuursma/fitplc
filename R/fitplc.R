@@ -26,25 +26,60 @@
 #' @param msMaxIter Maximum iterations for \code{\link{nlminb}}. Only change when needed.
 #'
 #' @details 
-#' \strong{Models} - 
-#' The Weibull model is fit as reparameterized by Ogle et al. (2009), using non-linear regression (\code{\link{nls}}) or a non-linear mixed-effects model if a random effect is present (\code{\link{nlme}}). The sigmoidal-exponential model follows the 
-#' specification by Pammenter and van Willigen (1998) : PLC is log-transformed so a linear fit can be obtained with \code{\link{lm}} or \code{\link{lme}} in the presence of a random effect. 
-#' Parameters estimated are PX (water potential at which X% conductivity is lost) and SX 
-#' (slope of PLC vs. water potential at P50, MPa per percent). For the sigmoidal model, SX is a parameter combination (and so is PX when x is not 50), so only bootstrap estimates of the confidence intervals are given. 
+#' \strong{Parameters} -
+#' Regardless of the model chosen, the \code{fitplc} function estimates PX (water potential 
+#' at which X% conductivity is lost) and SX (slope of PLC vs. water potential 
+#' at PX, MPa per percent).
+#'\strong{Models} -
+#'Four different models can be fit with the \code{fitplc} function. Two of these additionally 
+#'have the option to account for a random effect (using the \code{random} argument): the 
+#'Weibull and sigmoidal models.
+#'\describe{
+#'\item{Weibull}{The Weibull model is fit as reparameterized by Ogle et al. (2009), 
+#'using non-linear regression (\code{\link{nls}}) or a non-linear mixed-effects model if a 
+#'random effect is present (\code{\link{nlme}}).}
+#'\item{sigmoidal}{The sigmoidal-exponential model follows the 
+#' specification by Pammenter and van Willigen (1998) : PLC is log-transformed so a 
+#' linear fit can be obtained with \code{\link{lm}} or \code{\link{lme}} in the presence 
+#' of a random effect. }
+#'\item{loess}{A non-parametric, local regression smoother (using \code{\link{loess}}), 
+#'appropriate when parametric models fit poorly (such as for very linear responses). }
+#'\item{nls_sigmoidal}{Equivalent to the \code{sigmoidal} model, except the fit is obtained 
+#'via non-linear regression (not via linear regression following transformation), which in 
+#'certain cases can give drastically better fits (as noted on small sample, low variance 
+#'datasets).}
+#'}
+#'
 #'
 #' \strong{Bootstrap} - 
-#' We recommend, where possible, to use the bootstrapped confidence intervals for inference (use at least ca 1000 resamples). For the Weibull model, this is only possible when a sufficiently large sample size is available for a single curve (otherwise too many nls fits will fail). For the sigmoidal model, however, bootstrap is always possible and will always be employed (it cannot be turned off).
+#' We recommend, where possible, to use the bootstrapped confidence intervals for inference 
+#' (use at least ca 1000 resamples). The default is TRUE, and it can only be switched off for
+#' the Weibull model (in case speed is warranted). The bootstrap is not applied when a random
+#' effect is present.
 #' 
 #' \strong{Confidence intervals} - 
-#' Calculation of confidence intervals (CI) depends on the method chosen. For the Weibull model, the CI based on profiling ('Normal approximation') is always performed, and a non-parametric bootstrap when \code{bootci=TRUE}. Both are output in \code{coef}, and the bootstrap CI is used in plotting unless otherwise specified (see \code{\link{plot.plcfit}}). When a random effect is specified (for the Weibull model), the CI is calculated with \code{\link{intervals.lme}}. For the sigmoidal model, PX and SX are functions of parameters of a linearized fit, and we thus always use the bootstrap when no random effect is present (it cannot be switched off). When a random effect is included in the sigmoidal model, we use \code{\link{deltaMethod}} from the \code{car} package.
+#' For the Weibull model, the CI based on profiling ('Normal approximation') is always 
+#' performed, and a non-parametric bootstrap when \code{bootci=TRUE}. Both are output 
+#' in \code{coef}, and the bootstrap CI is used in plotting unless otherwise 
+#' specified (see \code{\link{plot.plcfit}}). When a random effect is specified 
+#' (for the Weibull model), the CI is calculated with \code{\link{intervals.lme}}. 
+#' For the sigmoidal model, PX and SX are functions of parameters of a linearized fit, 
+#' and we thus always use the bootstrap when no random effect is present (it cannot be 
+#' switched off). When a random effect is included in the sigmoidal model, 
+#' we use \code{\link{deltaMethod}} from the \code{car} package.
 #' 
 #' \strong{Weights} - 
-#' If a variable with the name Weights is present in the dataframe, this variable will be used as the \code{weights} argument to perform weighted (non-linear) regression. See Examples on how to use this.
+#' If a variable with the name Weights is present in the dataframe, this variable will 
+#' be used as the \code{weights} argument to perform weighted (non-linear) regression. 
+#' See Examples on how to use this option. \strong{Note:} the use of weights has been tested
+#' very little in the context of fitting PLC curves.
 #' 
 #' \strong{Random effects} - 
-#' If the \code{random} argument specifies a factor variable present in the dataframe, random effects will be estimated both for SX and PX. This affects \code{coef} as well as the confidence intervals for the fixed effects. For both the Weibull model and the sigmoidal model, only the random intercept terms are estimated (i.e. \code{random=~1|group}).
+#' If the \code{random} argument specifies a factor variable present in the dataframe, 
+#' random effects will be estimated both for SX and PX. This affects \code{coef} as well 
+#' as the confidence intervals for the fixed effects. For both the Weibull model and the 
+#' sigmoidal model, only the random intercept terms are estimated (i.e. \code{random=~1|group}).
 #'
-#' A plot method is available for the fitted object, see Examples below.
 #' @export
 #' @importFrom nlme fixef
 #' @importFrom nlme nlme
@@ -235,25 +270,22 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     Data <- data.frame(P=P, PLC=plc, relK=relK, G=G)
     Data$minP <- -Data$P  # negative valued water potential
     
-    
+    # Select model, run function to fit model.
     model2 <- paste0(model, ifelse(fitran, "_random", "_fixed"))
     
-    fitting_function <- get(model2)
+    out <- switch(model2,
+                  Weibull_fixed = Weibull_fixed(Data, W, x, coverage, 
+                                                bootci, nboot, quiet),
+                  Weibull_random = Weibull_random(Data, W, x, coverage, msMaxIter),
+                  loess_fixed = loess_fixed(Data, W, x, coverage, condfit,
+                                            bootci, nboot, quiet, loess_span),
+                  sigmoidal_fixed = sigmoidal_fixed(Data, W, x, coverage, 
+                                                    bootci, nboot, quiet),
+                  sigmoidal_random = sigmoidal_random(Data, W, x, coverage, quiet),
+                  nls_sigmoidal_fixed = nls_sigmoidal_fixed(Data, W, x, coverage,
+                                                            bootci, nboot, quiet))
     
-    #- fitting_function is one of:
-    # weibull_fixed
-    # weibull_random
-    # loess_fixed
-    # sigmoidal_fixed
-    # sigmoidal_random
-    # nls_sigmoidal_fixed
-    #- all fitting functions return a list like:
-    #list(fit = fit, pred = pred, cipars = cipars)
-    
-    structure(c(fitting_function(Data, W, x, coverage, condfit, Kmax,
-                                 bootci, nboot, quiet, 
-                                 loess_span, msMaxIter),
-                
+    structure(c(out,
                 list(data = Data,
                      x = x,
                      condfit = condfit,
@@ -271,9 +303,8 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
 
 
 
-Weibull_fixed <- function(Data, W, x, coverage, condfit, Kmax,
-                          bootci, nboot, quiet, 
-                          loess_span, msMaxIter){
+Weibull_fixed <- function(Data, W, x, coverage, 
+                          bootci, nboot, quiet){
   
   # guess starting values from sigmoidal
   f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
@@ -311,9 +342,7 @@ Weibull_fixed <- function(Data, W, x, coverage, condfit, Kmax,
     cipx <- quantile(pred$boot[,"PX"], c((1-coverage)/2, 1 - (1-coverage)/2))
     
     bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
-                       dimnames=list(c("SX","PX"),
-                                     c(sprintf("Boot - %s",label_lowci(coverage)),
-                                       sprintf("Boot - %s",label_upci(coverage)))))
+                       dimnames=list(c("SX","PX"), ci_names("Boot", coverage)))
     cipars <- cbind(cipars, bootpars)
   }    
   
@@ -321,9 +350,7 @@ list(fit = fit, pred = pred, cipars = cipars)
 }
 
 
-Weibull_random <- function(Data, W, x, coverage, condfit, Kmax,
-                           bootci, nboot, quiet, 
-                           loess_span, msMaxIter){
+Weibull_random <- function(Data, W, x, coverage, msMaxIter){
   
   # guess starting values from sigmoidal
   f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
@@ -362,9 +389,8 @@ list(fit = fit, pred = pred, cipars = cipars)
 
 
 
-loess_fixed <- function(Data, W, x, coverage, condfit, Kmax,
-                        bootci, nboot, quiet, 
-                        loess_span, msMaxIter){
+loess_fixed <- function(Data, W, x, coverage, condfit,
+                        bootci, nboot, quiet, loess_span){
   
   Data$W <- W
   fit <- loess(relK ~ P, data=Data, span=loess_span, weights=Data$W, degree=1)
@@ -385,9 +411,8 @@ list(fit = fit, pred = pred, cipars = cipars)
 
 
 
-sigmoidal_fixed <- function(Data, W, x, coverage, condfit, Kmax,
-                            bootci, nboot, quiet, 
-                            loess_span, msMaxIter){
+sigmoidal_fixed <- function(Data, W, x, coverage, 
+                            bootci, nboot, quiet){
   
   f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot, W=W)
   
@@ -417,9 +442,8 @@ list(fit = f$fit, pred = pred, cipars = cipars)
 }
 
 
-nls_sigmoidal_fixed <- function(Data, W, x, coverage, condfit, Kmax,
-                                bootci, nboot, quiet, 
-                                loess_span, msMaxIter){
+nls_sigmoidal_fixed <- function(Data, W, x, coverage,
+                                bootci, nboot, quiet){
   
   # guess starting values from linearized sigmoidal
   f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
@@ -477,9 +501,7 @@ list(fit = fit, pred = pred, cipars = cipars)
 }
 
 
-sigmoidal_random <- function(Data, weights, x, coverage, condfit, Kmax,
-                             bootci, nboot, quiet, 
-                             loess_span, msMaxIter){
+sigmoidal_random <- function(Data, W, x, coverage, quiet){
   
   # With random effect
   fit <- do_sigmoid_lme_fit(Data)
