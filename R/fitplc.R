@@ -234,327 +234,324 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
     
     # weights, if provided
     W <- eval(substitute(weights), dfr)
+    if(is.null(W))W <- rep(1, nrow(dfr))
     
     # Dataset tidied
     Data <- data.frame(P=P, PLC=plc, relK=relK, G=G)
     Data$minP <- -Data$P  # negative valued water potential
     
-    if(model == "loess"){
-      
-      fit <- do_loess_fit(Data, span=loess_span)
-      pred <- get_loess_pred(fit, coverage)
-      
-      ml_Px <- get_px_loessfit(pred, x, rescale = condfit)
-      boot_Px <- boot_px_loess(fit, Data, B=999, loess_span, x, rescale = condfit)
-      
-      cipars <- rbind(c(NA, NA, NA),
-                      c(ml_Px, boot_ci(boot_Px, coverage)))
-      
-      dimnames(cipars) <- list(c("SX","PX"), 
-                               c("Estimate", ci_names("Boot",coverage)))
     
-      l <- list(fit=fit, pred=pred, 
-                cipars=cipars, data=Data, x=x, 
-                Kmax=Kmax)
-    }
+    model2 <- paste0(model, ifelse(fitran, "_random", "_fixed"))
     
-    if(model == "sigmoidal"){
-      
-      if(!fitran){
-        # without random effect
-        f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot)
-        
-        # Bootstrap
-        cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
-        boot_Sx <- cf$Sx  
-        boot_Px <- cf$Px
-        
-        # Maximum likelihood
-        p <- coef(f$fit)
-        
-        mf <- sigfit_coefs(p[1],p[2],x=x)
-        ml_Sx <- mf$Sx
-        ml_Px <- mf$Px
-          
-        # Coefficients matrix
-        cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
-                        c(ml_Px, boot_ci(boot_Px, coverage)))
-        
-        dimnames(cipars) <- list(c("SX","PX"), 
-                                 c("Estimate", ci_names("Boot",coverage)))
-        
-        # f must be component with 'fit' and 'boot'
-        pred <- get_boot_pred_sigmoid(f, Data, coverage)
-        
-        fit <- f$fit
-        
-      } else {
-        
-        # With random effect
-        fit <- do_sigmoid_lme_fit(Data, W)
-        
-        Px_ci <- deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
-        
-        # deltaMethod not needed here but convenient and equivalent
-        Sx_ci <- deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
-        cipars <- rbind(Sx_ci, Px_ci)
-        cipars$SE <- NULL
-        dimnames(cipars) <- list(c("SX","PX"),
-		                         c("Estimate", ci_names("Norm",coverage)))
-		                           
-        predran <- lapply(split(Data, Data$G), function(x){
-          
-          ps <- seq_within(x$minP, n=101)
-          newdat <- data.frame(minP=ps, G=unique(x$G))
-          
-          list(x=-ps, fit=sigmoid_untrans(unname(predict(fit, newdat)))) 
-        })
-        ps <- seq_within(Data$minP, n=101)
-        newdat <- data.frame(minP=ps, X=x)
-        pred <- list(x=-ps, fit=predict(fit, newdat, level=0), ran=predran)
-        pred$fit <- sigmoid_untrans(pred$fit)
-        
-      }
-      
-      l <- list(fit=fit, pred=pred, 
-                cipars=cipars, data=Data, x=x, 
-                Kmax=Kmax)
-
-    }
-
+    fitting_function <- get(model2)
     
-    # move to subfunction
-    if(model == "nls_sigmoidal"){
-      
-      # guess starting values from sigmoidal
-      f <- do_sigmoid_fit(Data, boot=FALSE)
-      p <- coef(f$fit)
-      
-      # As in sigfit_coefs, but only partial conversion
-      a <- p[2]
-      b <- p[1]/p[2]
-      
-      # fit
-      Data$X <- x  # Necessary for bootstrap - I think.
-      if(!quiet)message("Fitting nls ...", appendLF=FALSE)
-      
-      # Weighted NLS
-      if(!is.null(W)){
-        
-        fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
-                   data=Data, start=list(a=a, b=b),
-                   weights=W)
-        
-      } else {
-        
-        # Ordinary NLS
-        fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
-                   data=Data, start=list(a=a, b=b))
-      }
-      
-      nls_sig_convert_coef <- function(coefs, x){
-        
-        a <- coefs[1]
-        b <- coefs[2]
-        Px <- ab_to_px(a, b, x)
-        
-        # Derivative of sigmoid
-        sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
-        Sx <- 100 * sig2d(Px,a,b)
-        
-      list(Px=Px, Sx=Sx)
-      }
+    #- fitting_function is one of:
+    # weibull_fixed
+    # weibull_random
+    # loess_fixed
+    # sigmoidal_fixed
+    # sigmoidal_random
+    # nls_sigmoidal_fixed
+    #- all fitting functions return a list like:
+    #list(fit = fit, pred = pred, cipars = cipars)
     
-      fit_ab <- coef(fit)
-      sp <- nls_sig_convert_coef(fit_ab, x=x)
-      
-      if(bootci){
-        pred <- predict_nls(fit, xvarname="P", interval="confidence", data=Data, 
-                            startList=list(a=fit_ab[1], b=fit_ab[2]), weights=W, 
-                            level=coverage,
-                            nboot=nboot)
-      
-        z <- apply(pred$boot, 1, nls_sig_convert_coef, x=x)
-        pred$boot <- as.data.frame(do.call(rbind, lapply(z, unlist)))
-        names(pred$boot) <- c("Px","Sx")
-        
-        cisx <- quantile(pred$boot[,"Sx"], c((1-coverage)/2, 1 - (1-coverage)/2))
-        cipx <- quantile(pred$boot[,"Px"], c((1-coverage)/2, 1 - (1-coverage)/2))
-        
-        bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
-                           dimnames=list(c("SX","PX"),
-                                         c(sprintf("Boot - %s",label_lowci(coverage)),
-                                           sprintf("Boot - %s",label_upci(coverage)))))
-        
-        cipars <- matrix(c(sp$Sx, sp$Px), ncol=1, nrow=2)
-        dimnames(cipars) <- list(c("SX","PX"), "Estimate")
-        cipars <- cbind(cipars, bootpars)
-      }
-
-      l <- list(fit=fit, pred=pred, 
-                cipars=cipars, data=Data, x=x, 
-                Kmax=Kmax)
-    }
+    structure(c(fitting_function(Data, W, x, coverage, condfit, Kmax,
+                                 bootci, nboot, quiet, 
+                                 loess_span, msMaxIter),
+                
+                list(data = Data,
+                     x = x,
+                     condfit = condfit,
+                     Kmax = Kmax,
+                     fitran = fitran,
+                     bootci = bootci,
+                     nboot = nboot,
+                     model = model, 
+                     coverage = coverage,
+                     shiftval = shift_val)),
+              class = "plcfit")
     
-    # move to subfunction
-    if(model == "Weibull"){
-    
-      # guess starting values from sigmoidal
-      f <- do_sigmoid_fit(Data, boot=FALSE)
-      p <- coef(f$fit)
-      sp <- sigfit_coefs(p[1],p[2],x=x)
-      
-      # fit
-      Data$X <- x  # Necessary for bootstrap - I think.
-      if(!quiet)message("Fitting nls ...", appendLF=FALSE)
-  
-      # Weighted NLS
-      if(!is.null(W)){
-          
-          if(!fitran){
-            fit <- nls(relK ~ fweibull(P,SX,PX,X),
-                      data=Data, start=list(SX=sp$Sx, PX=sp$Px),
-                      weights=W)
-          } else {
-            fit <- nlme(relK ~ fweibull(P, SX, PX, X),
-                       fixed=list(SX ~ 1, PX ~ 1),
-                       random= SX + PX ~ 1|G,
-                       start=list(fixed=c(SX=sp$Sx, 
-                                          PX=sp$Px)),
-                       weights=W,
-                       control=nlmeControl(msMaxIter = msMaxIter, eval.max=1e06),
-                       data=Data)
-          }
-        
-      } else {
-        
-      # Ordinary NLS
-        if(!fitran){
-          fit <- nls(relK ~ fweibull(P,SX,PX,X),
-                      data=Data, start=list(SX=sp$Sx, PX=sp$Px))
-        } else {
-          fit <- nlme(relK ~ fweibull(P, SX, PX, X),
-                          fixed=list(SX ~ 1, PX ~ 1),
-                          random= SX + PX ~ 1|G,
-                          start=list(fixed=c(SX=sp$Sx, 
-                                             PX=sp$Px)),
-                          data=Data,
-                          control=nlmeControl(msMaxIter = msMaxIter, eval.max=1e06))
-        }
-      }
-      
-      if(!quiet)message("done.")
-      
-      # bootstrap
-      if(!fitran){
-    
-        if(bootci){
-          if(!quiet)message("Fitting to bootstrap replicates ...", appendLF=FALSE)
-          
-          pred <- predict_nls(fit, xvarname="P", interval="confidence", data=Data, 
-                           startList=list(SX=sp$Sx, PX=sp$Px), weights=W, 
-                           level=coverage,
-                           nboot=nboot)
-          if(!quiet)message("done.")
-        } else {
-          pred <- predict_nls(fit, xvarname="P", interval="none", data=Data, 
-                           startList=list(SX=sp$Sx, PX=sp$Px), 
-                           level=coverage,
-                           weights=W, nboot=nboot)
-        }
-      } else {
-        
-        predran <- lapply(split(Data, Data$G), function(group){
-          
-          ps <- seq_within(group$P, n=101)
-          newdat <- data.frame(P=ps, G=unique(group$G), X=x)
-          
-          list(x=ps, fit=unname(predict(fit, newdat))) 
-        })
-        
-        ps <- seq_within(Data$P, n=101)
-        newdat <- data.frame(P=ps, X=x)
-        pred <- list(x=ps, fit=predict(fit, newdat, level=0), ran=predran)
-        
-      }
-      
-      if(!fitran){
-        # ci on pars.
-        cipars <- try(suppressMessages(confint(fit, level=coverage)), silent=TRUE)
-        if(inherits(cipars, "try-error")){
-          cipars <- matrix(rep(NA,4),ncol=2)
-        }
-        cipars <- cbind(coef(fit), cipars)
-        dimnames(cipars) <- list(c("SX","PX"), c("Estimate", 
-                                                 sprintf("Norm - %s",label_lowci(coverage)),
-                                                 sprintf("Norm - %s",label_upci(coverage))))
-      
-        if(bootci){
-          cisx <- quantile(pred$boot[,"SX"], c((1-coverage)/2, 1 - (1-coverage)/2))
-          cipx <- quantile(pred$boot[,"PX"], c((1-coverage)/2, 1 - (1-coverage)/2))
-    
-          bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
-                             dimnames=list(c("SX","PX"),
-                                           c(sprintf("Boot - %s",label_lowci(coverage)),
-                                           sprintf("Boot - %s",label_upci(coverage)))))
-          cipars <- cbind(cipars, bootpars)
-        }               
-      } else {
-        cipars <- intervals(fit,which="fixed")$fixed[,c(2,1,3)]
-        colnames(cipars) <- c("Estimate",
-                              sprintf("Norm - %s",label_lowci(coverage)),
-                              sprintf("Norm - %s",label_upci(coverage)))
-        attributes(cipars)$label <- NULL
-      }
-      
-      l <- list()
-      l$fit <- fit
-      l$pred <- pred
-      l$cipars <- cipars
-      l$data <- data.frame(P=P, PLC=plc, relK=relK)
-      l$x <- x
-      l$fitran <- fitran
-        
-      l$bootci <- bootci
-      l$condfit <- condfit
-      l$Kmax <- Kmax
-      l$nboot <- nboot
-      
-    }
-    
-    class(l) <- "plcfit"
-    l$condfit <- condfit
-    l$fitran <- fitran
-    l$bootci <- bootci
-    l$model <- model
-    l$coverage <- coverage
-    l$shiftval <- shift_val
-    return(l)
 }    
 
 
 
+
+Weibull_fixed <- function(Data, W, x, coverage, condfit, Kmax,
+                          bootci, nboot, quiet, 
+                          loess_span, msMaxIter){
+  
+  # guess starting values from sigmoidal
+  f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
+  p <- coef(f$fit)
+  sp <- sigfit_coefs(p[1], p[2], x=x)
+  
+  # fit
+  Data$X <- x  # Necessary for bootstrap - I think.
+  if(!quiet)message("Fitting nls ...", appendLF=FALSE)
+  
+  fit <- nls(relK ~ fweibull(P,SX,PX,X),
+             data=Data, start=list(SX=sp$Sx, PX=sp$Px),
+             weights=W)
+  
+  if(!quiet)message("done.")
+  
+  inter_val <- ifelse(bootci, "confidence", "none")
+  
+  pred <- predict_nls(fit, xvarname="P", interval=inter_val, data=Data, 
+                      startList=list(SX=sp$Sx, PX=sp$Px), weights=W, 
+                      level=coverage,
+                      nboot=nboot)
+  
+  cipars <- try(suppressMessages(confint(fit, level=coverage)), silent=TRUE)
+  if(inherits(cipars, "try-error")){
+    cipars <- matrix(rep(NA,4),ncol=2)
+  }
+  cipars <- cbind(coef(fit), cipars)
+  dimnames(cipars) <- list(c("SX","PX"), c("Estimate", 
+                                           sprintf("Norm - %s",label_lowci(coverage)),
+                                           sprintf("Norm - %s",label_upci(coverage))))
+  
+  if(bootci){
+    cisx <- quantile(pred$boot[,"SX"], c((1-coverage)/2, 1 - (1-coverage)/2))
+    cipx <- quantile(pred$boot[,"PX"], c((1-coverage)/2, 1 - (1-coverage)/2))
+    
+    bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
+                       dimnames=list(c("SX","PX"),
+                                     c(sprintf("Boot - %s",label_lowci(coverage)),
+                                       sprintf("Boot - %s",label_upci(coverage)))))
+    cipars <- cbind(cipars, bootpars)
+  }    
+  
+list(fit = fit, pred = pred, cipars = cipars)
+}
+
+
+Weibull_random <- function(Data, W, x, coverage, condfit, Kmax,
+                           bootci, nboot, quiet, 
+                           loess_span, msMaxIter){
+  
+  # guess starting values from sigmoidal
+  f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
+  p <- coef(f$fit)
+  sp <- sigfit_coefs(p[1],p[2],x=x)
+  
+  Data$X <- x  # Necessary for bootstrap - I think.
+  
+  fit <- nlme(relK ~ fweibull(P, SX, PX, X),
+              fixed=list(SX ~ 1, PX ~ 1),
+              random= SX + PX ~ 1|G,
+              start=list(fixed=c(SX=sp$Sx, 
+                                 PX=sp$Px)),
+              control=nlmeControl(msMaxIter = msMaxIter, eval.max=1e06),
+              data=Data)
+  
+  predran <- lapply(split(Data, Data$G), function(group){
+    
+    ps <- seq_within(group$P, n=101)
+    newdat <- data.frame(P=ps, G=unique(group$G), X=x)
+    
+    list(x=ps, fit=unname(predict(fit, newdat))) 
+  })
+  
+  ps <- seq_within(Data$P, n=101)
+  newdat <- data.frame(P=ps, X=x)
+  pred <- list(x=ps, fit=predict(fit, newdat, level=0), ran=predran)
+  
+  cipars <- intervals(fit,which="fixed")$fixed[,c(2,1,3)]
+  colnames(cipars) <- c("Estimate", ci_names("Norm", coverage))
+  
+  attributes(cipars)$label <- NULL
+  
+list(fit = fit, pred = pred, cipars = cipars)
+}
+
+
+
+loess_fixed <- function(Data, W, x, coverage, condfit, Kmax,
+                        bootci, nboot, quiet, 
+                        loess_span, msMaxIter){
+  
+  Data$W <- W
+  fit <- loess(relK ~ P, data=Data, span=loess_span, weights=Data$W, degree=1)
+  
+  pred <- get_loess_pred(fit, coverage)
+  
+  ml_Px <- get_px_loessfit(pred, x, rescale = condfit)
+  boot_Px <- boot_px_loess(fit, Data, B=999, loess_span, x, rescale = condfit)
+  
+  cipars <- rbind(c(NA, NA, NA),
+                  c(ml_Px, boot_ci(boot_Px, coverage)))
+  
+  dimnames(cipars) <- list(c("SX","PX"), 
+                           c("Estimate", ci_names("Boot",coverage)))
+  
+list(fit = fit, pred = pred, cipars = cipars)
+}
+
+
+
+sigmoidal_fixed <- function(Data, W, x, coverage, condfit, Kmax,
+                            bootci, nboot, quiet, 
+                            loess_span, msMaxIter){
+  
+  f <- do_sigmoid_fit(Data, boot=TRUE, nboot=nboot, W=W)
+  
+  # Bootstrap
+  cf <- sigfit_coefs(f$boot[,1], f$boot[,2],x=x)
+  boot_Sx <- cf$Sx  
+  boot_Px <- cf$Px
+  
+  # Maximum likelihood
+  p <- coef(f$fit)
+  
+  mf <- sigfit_coefs(p[1],p[2],x=x)
+  ml_Sx <- mf$Sx
+  ml_Px <- mf$Px
+  
+  # Coefficients matrix
+  cipars <- rbind(c(ml_Sx, boot_ci(boot_Sx, coverage)),
+                  c(ml_Px, boot_ci(boot_Px, coverage)))
+  
+  dimnames(cipars) <- list(c("SX","PX"), 
+                           c("Estimate", ci_names("Boot",coverage)))
+  
+  # f must be component with 'fit' and 'boot'
+  pred <- get_boot_pred_sigmoid(f, Data, coverage)
+  
+list(fit = f$fit, pred = pred, cipars = cipars)
+}
+
+
+nls_sigmoidal_fixed <- function(Data, W, x, coverage, condfit, Kmax,
+                                bootci, nboot, quiet, 
+                                loess_span, msMaxIter){
+  
+  # guess starting values from sigmoidal
+  f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
+  p <- coef(f$fit)
+  
+  # As in sigfit_coefs, but only partial conversion
+  a <- p[2]
+  b <- p[1]/p[2]
+  
+  # fit
+  Data$X <- x  # Necessary for bootstrap - I think.
+  if(!quiet)message("Fitting nls ...", appendLF=FALSE)
+  
+  # Weighted NLS
+  if(!is.null(W)){
+    
+    fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
+               data=Data, start=list(a=a, b=b),
+               weights=W)
+    
+  } else {
+    
+    # Ordinary NLS
+    fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
+               data=Data, start=list(a=a, b=b))
+  }
+  
+  nls_sig_convert_coef <- function(coefs, x){
+    
+    a <- coefs[1]
+    b <- coefs[2]
+    Px <- ab_to_px(a, b, x)
+    
+    # Derivative of sigmoid
+    sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
+    Sx <- 100 * sig2d(Px,a,b)
+    
+    list(Px=Px, Sx=Sx)
+  }
+  
+  fit_ab <- coef(fit)
+  sp <- nls_sig_convert_coef(fit_ab, x=x)
+  
+  if(bootci){
+    pred <- predict_nls(fit, xvarname="P", interval="confidence", data=Data, 
+                        startList=list(a=fit_ab[1], b=fit_ab[2]), weights=W, 
+                        level=coverage,
+                        nboot=nboot)
+    
+    z <- apply(pred$boot, 1, nls_sig_convert_coef, x=x)
+    pred$boot <- as.data.frame(do.call(rbind, lapply(z, unlist)))
+    names(pred$boot) <- c("Px","Sx")
+    
+    cisx <- quantile(pred$boot[,"Sx"], c((1-coverage)/2, 1 - (1-coverage)/2))
+    cipx <- quantile(pred$boot[,"Px"], c((1-coverage)/2, 1 - (1-coverage)/2))
+    
+    bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
+                       dimnames=list(c("SX","PX"),
+                                     c(sprintf("Boot - %s",label_lowci(coverage)),
+                                       sprintf("Boot - %s",label_upci(coverage)))))
+    
+    cipars <- matrix(c(sp$Sx, sp$Px), ncol=1, nrow=2)
+    dimnames(cipars) <- list(c("SX","PX"), "Estimate")
+    cipars <- cbind(cipars, bootpars)
+  }
+  
+list(fit = fit, pred = pred, cipars = cipars)
+}
+
+
+sigmoidal_random <- function(Data, weights, x, coverage, condfit, Kmax,
+                             bootci, nboot, quiet, 
+                             loess_span, msMaxIter){
+  
+  # With random effect
+  fit <- do_sigmoid_lme_fit(Data)
+  
+  Px_ci <- deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
+  
+  # deltaMethod not needed here but convenient and equivalent
+  Sx_ci <- deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
+  cipars <- rbind(Sx_ci, Px_ci)
+  cipars$SE <- NULL
+  dimnames(cipars) <- list(c("SX","PX"),
+                           c("Estimate", ci_names("Norm",coverage)))
+  
+  predran <- lapply(split(Data, Data$G), function(x){
+    
+    ps <- seq_within(x$minP, n=101)
+    newdat <- data.frame(minP=ps, G=unique(x$G))
+    
+    list(x=-ps, fit=sigmoid_untrans(unname(predict(fit, newdat)))) 
+  })
+  ps <- seq_within(Data$minP, n=101)
+  newdat <- data.frame(minP=ps, X=x)
+  pred <- list(x=-ps, fit=predict(fit, newdat, level=0), ran=predran)
+  pred$fit <- sigmoid_untrans(pred$fit)
+  
+
+list(fit = fit, pred = pred, cipars = cipars)  
+}
+
+
+
+#----- Subsidiary functions
+
 do_sigmoid_fit <- function(data, W=NULL, boot=FALSE, nboot){
   
-  data <- data[data$PLC < 100 & data$PLC > 0,]
+  keep <- which(data$PLC < 100 & data$PLC > 0)
+  data <- data[keep,]
+  W <- W[keep]
 
   # Transformation as per P&vW
   data$logPLC <- log(100/data$PLC - 1)
   
-  if(!is.null(W)){
-    lmfit <- lm(logPLC ~ minP, data=data, weights=W)
-    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, 
-                                            startList=NULL, weights=W)) else NA
+  lmfit <- lm(logPLC ~ minP, data=data, weights=W)
+  if(boot){
+    br <- suppressWarnings(bootfit(lmfit, n=nboot, 
+                             Data=data, startList=NULL, weights=W))
   } else {
-    lmfit <- lm(logPLC ~ minP, data=data)
-    br <- if(boot) suppressWarnings(bootfit(lmfit, n=nboot, Data=data, 
-                                            startList=NULL)) else NA
+    br <- NA
   }
-  
-  return(list(fit=lmfit, boot=br))
+
+list(fit=lmfit, boot=br)
 }
 
-do_sigmoid_lme_fit <- function(data, W=NULL){
+do_sigmoid_lme_fit <- function(data){
   
   data <- data[data$PLC > 0 & data$PLC < 100,]
   
@@ -562,13 +559,10 @@ do_sigmoid_lme_fit <- function(data, W=NULL){
   
   fit <- lme(logPLC ~ minP,
              random= ~1|G,
-             weights=W,
              data=data)
   
 return(fit)
 }
-
-
 
 # Calculate Sx, Px, given log-linear fit of sigmoidal model
 sigfit_coefs <- function(c1,c2,x){
@@ -581,9 +575,10 @@ sigfit_coefs <- function(c1,c2,x){
   Sx <- -100 * sig2d(Px,a,b)
   #Sx <- 100 * c2/4  # slope at P50
   
-  list(Px=unname(Px), Sx=unname(Sx))
+list(Px=unname(Px), Sx=unname(Sx))
 }
 
+# Bootstrap predictions for the sigmoidal model
 get_boot_pred_sigmoid <- function(f, data, coverage){
   
   preddfr <- data.frame(minP=seq_within(data$minP))
@@ -601,16 +596,6 @@ get_boot_pred_sigmoid <- function(f, data, coverage){
 }
 
 
-do_loess_fit <- function(data, span = 0.75, W=NULL, boot=FALSE, nboot=1000){
-
-  if(!is.null(W)){
-    fit <- loess(relK ~ P, data=data, span=span, weights=W, degree=1)
-  } else {
-    fit <- loess(relK ~ P, data=data, span=span, degree=1)
-  }
-  
-return(fit)
-}
 
 
 get_loess_pred <- function(fit, coverage){
