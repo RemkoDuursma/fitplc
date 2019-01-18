@@ -11,4 +11,4 @@ BugReports: https://www.bitbucket.org/remkoduursma/fitplc/issues
 Depends: nlme, car
 Suggests: testthat
 LazyData: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1

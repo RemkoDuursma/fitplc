@@ -13,7 +13,7 @@
 #' @param random Variable that specifies random effects (unquoted; must be present in dfr).
 #' @param x If the P50 is to be returned, x = 50. Set this value if other points of the PLC curve should be estimated (although probably more robustly done via \code{\link{getPx}}).
 #' @param coverage The coverage of the confidence interval for the parameters (0.95 is the default).
-#' @param model Either 'Weibull' or 'sigmoidal'. See Details.
+#' @param model Either 'Weibull', 'sigmoidal', 'loess' or 'nls_sigmoidal'. See Details.
 #' @param startvalues Obsolete - starting values for Weibull now estimated from sigmoidal model fit.
 #' @param bootci If TRUE, also computes the bootstrap confidence interval.
 #' @param nboot The number of bootstrap replicates used for calculating confidence intervals.
