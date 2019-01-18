@@ -45,7 +45,7 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         pxlinecol="red",
                         pxcex=0.7,
                         citype=c("polygon","lines"),
-                        cicol=alpha("lightgrey",0.8),
+                        cicol="#D3D3D3CC",
                         what=c("relk","PLC","embol"), 
                         xaxis=c("positive","negative"),
                         ...){

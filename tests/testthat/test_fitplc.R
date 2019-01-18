@@ -9,6 +9,8 @@ cover <- 0.95
 n_boot <- 101
 
 f <- fitplc(dpap, x=Xval, coverage=cover, nboot=n_boot)
+f2 <- fitplc(dpap, x=Xval, coverage=cover, nboot=n_boot, shift_zero_min=0.1)
+
 g <- fitplc(dpap, bootci=FALSE, x=Xval, coverage=cover, nboot=n_boot)
 h <- fitplc(dpap, model="sigm", x=Xval, coverage=cover, nboot=n_boot)
 h4 <- fitplc(dpap, model="loess", x=Xval, coverage=cover, nboot=n_boot)
@@ -24,9 +26,15 @@ fc1 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"),
                x=Xval, coverage=cover, nboot=n_boot)
 fc2 <- fitcond(dpap, WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), 
                model="sigmoid", x=Xval, coverage=cover, nboot=n_boot)
+fc3 <- fitcond(dpap, WP_Kmax=-0.5, varnames=c(K="Cond", WP="MPa"), 
+               model="loess", x=Xval, coverage=cover, nboot=n_boot,
+               rescale_Px = TRUE)
 h3 <- fitconds(stemvul, group="Species", 
                WP_Kmax=0.5, varnames=c(K="Cond", WP="MPa"), 
                x=Xval, model="sigmoid", coverage=cover, nboot=n_boot)
+
+s1 <- fitplc(dpap, x=Xval, coverage=cover, nboot=n_boot, 
+             model = "nls_sigmoidal")
 
 
 dpap$Weights <- abs(50-dpap$PLC)^1.2
@@ -83,6 +91,25 @@ test_that("Estimated coefficients", {
   
 })
 
+
+test_that("Breaking things", {
+  expect_error(fitplcs(stemvul, group="NOGROUP", x=Xval, coverage=cover, nboot=n_boot))
+  expect_error(fitconds(stemvul, group="NOGROUP", x=Xval, coverage=cover, nboot=n_boot))
+  expect_warning(fitplc(dpap, x=Xval, coverage=cover, nboot=n_boot, quiet=FALSE,
+                        start=list(a=1, b=2)))
+  expect_warning(fitplc(dpap, model="sigm", x=Xval, coverage=cover, nboot=n_boot, boot=FALSE))
+  expect_error(fitplc(dpap, model="sigm", x=Xval, coverage=cover, nboot=n_boot, 
+                      varnames = c(PLC = "NOT", WP = "MPa")))
+  expect_error(fitplc(dpap, model="sigm", x=Xval, coverage=cover, nboot=n_boot, 
+                      varnames = c(PLC = "PLC", WP = "NOT")))
+  expect_error(fitplc(stemvul, random=Species, model="loess",
+                      x=Xval, coverage=cover, nboot=n_boot))
+  expect_error(fitplc(stemvul, random=Species, model="nls_sigmoidal",
+                      x=Xval, coverage=cover, nboot=n_boot))
+  expect_message(fitplc(stemvul, random=Species, quiet=FALSE, bootci=TRUE,
+                      x=Xval, coverage=cover, nboot=n_boot))
+})
+
 context("Print methods")
 print(f)
 print(g)
@@ -94,6 +121,7 @@ print(h3)
 print(fc1)
 print(fc2)
 summary(f) # equals (print(f))
+print(k)
 
 context("Plot curves")
 # Not sure how to test except to run a few bits.
