@@ -1,18 +1,13 @@
 
 #' @importFrom grDevices rgb
+#' (simplified to help code coverage)
 alpha <- function (colour, alpha = NA) {
   col <- col2rgb(colour, TRUE)/255
-  if (length(colour) != length(alpha)) {
-    if (length(colour) > 1 && length(alpha) > 1) {
-      stop("Only one of colour and alpha can be vectorised")
-    }
+
     if (length(colour) > 1) {
-      alpha <- rep(alpha, length.out = length(colour))
-    }
-    else if (length(alpha) > 1) {
-      col <- col[, rep(1, length(alpha)), drop = FALSE]
-    }
+    alpha <- rep(alpha, length.out = length(colour))
   }
+
   alpha[is.na(alpha)] <- col[4, ][is.na(alpha)]
   new_col <- rgb(col[1, ], col[2, ], col[3, ], alpha)
   new_col[is.na(colour)] <- NA

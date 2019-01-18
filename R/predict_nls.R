@@ -55,31 +55,4 @@ predict_nls <- function(object, xvarname=NULL, from=NULL, to=NULL, x=NULL,interv
 }
 
 
-plot.nls <- function(x, add=FALSE, 
-                     lwd=c(1,1), lty=c(1,5), col=c("black", "red"), 
-         xlim=NULL, ylim=NULL, xlab=NULL, ylab=NULL,  ...){
-  
-  p <- predict_nls(x,...)
-  
-  if(!add){
-    with(p, plot(rep(x,3), c(fit,upr,lwr), type='n'))
-  }
-  
-  with(p,{
-    lines(x, fit, lty=lty[1], lwd=lwd[1], col=col[1])
-    if("upr" %in% names(p)){
-      lines(x, upr, lty=lty[2], lwd=lwd[2], col=col[2])
-      lines(x, lwr, lty=lty[2], lwd=lwd[2], col=col[2])
-    }
-  })
-   
-}
-
-# 
-# plot(x,y)
-# plot(nls1, add=T)
-# 
-# plot(x,y,pch=19,cex=1.3,
-#      panel.first=plot(nls1,add=T,lwd=2,interval="confidence",col=c("grey","red")))
-# 
 

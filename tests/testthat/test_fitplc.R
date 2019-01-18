@@ -29,6 +29,10 @@ h3 <- fitconds(stemvul, group="Species",
                x=Xval, model="sigmoid", coverage=cover, nboot=n_boot)
 
 
+dpap$Weights <- abs(50-dpap$PLC)^1.2
+w1 <- fitplc(dpap, model = "Weibull", weights=Weights, nboot=n_boot)
+w2 <- fitplc(dpap, model = "sigmoidal", weights=Weights, nboot=n_boot)
+
 # getPx
 fun <- function(object)print(getPx(object, x=c(12,50,88)))
 gpx <- lapply(list(f,g,h,k,m),fun)
@@ -79,14 +83,30 @@ test_that("Estimated coefficients", {
   
 })
 
-
+context("Print methods")
+print(f)
+print(g)
+print(h)
+print(h4)
+print(h1)
+print(h2)
+print(h3)
+print(fc1)
+print(fc2)
+summary(f) # equals (print(f))
 
 context("Plot curves")
-
-
 # Not sure how to test except to run a few bits.
+
+curve(fsigmoidal(x, 2,10), from=0, to=5)
+
 plot(f)
 plot(g, add=TRUE,px_ci_type="horizontal")
+
+plot(f, what = "embol")
+plot(w1, xaxis="negative")
+plot(f, citype = "lines")
+plot(g, px_ci = "bootstrap")
 
 plot(f, xlab="Hello", ylab="Hey", ylim=c(0,2), pch=15, plotPx=FALSE,
      plotci=FALSE, plotdata=FALSE, plotfit=FALSE, multiplier=1.01,
@@ -103,7 +123,6 @@ plot(m, plotrandom=TRUE)
 
 # Jen bug, 2018-05-29
 plot(k, what="PLC", plotrandom=TRUE)
-
-
-
+plot(h1)
+plot(h1, onepanel=TRUE)
 

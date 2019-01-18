@@ -24,7 +24,6 @@
 #' @param pxlinecol The color of the lines indicating Px and its confidence interval 
 #' @param pxcex Character size for the Px label above the Y-axis.
 #' @param what Either 'relk' or 'PLC' (or synonym 'embol'); it will plot either relative conductivity or percent loss conductivity (percent embolism).
-#' @param selines Obsolete; use \code{px_ci}
 #' @param xaxis Either 'positive' (default), so that water potential is plotted as positive values, or 'negative', plotting negative-valued water potentials.
 #' @param \dots Further parameters passed to \code{plot}, or \code{points} (when \code{add=TRUE})
 #' @export
@@ -48,7 +47,6 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                         citype=c("polygon","lines"),
                         cicol=alpha("lightgrey",0.8),
                         what=c("relk","PLC","embol"), 
-                        selines=NULL,
                         xaxis=c("positive","negative"),
                         ...){
   
@@ -57,13 +55,8 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
     multiplier <- x$Kmax
   }
   
-  if(!missing(selines)){
-    warning("Argument 'selines' is now called 'px_ci'.")
-    px_ci <- match.arg(selines, eval(formals(plot.plcfit)$px_ci))
-  } else {
-    px_ci <- match.arg(px_ci)
-  }
-  
+  px_ci <- match.arg(px_ci)
+
   citype <- match.arg(citype)
   px_ci_type <- match.arg(px_ci_type)
   
