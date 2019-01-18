@@ -1,12 +1,19 @@
 
+# Relative conductance/conductivity to PLC.
 relk_to_plc <- function(relk)100 - 100*relk
 
+# PLC to relative conductance/conductivity.
 plc_to_relk <- function(plc)(100 - plc)/100
 
+# Convert a and b parameters in P&vW curve to Px.
 ab_to_px <- function(a,b,x)(log(1/(1 - x/100) - 1)/a) + b
 
 sigmoid_untrans <- function(x)(100 - 100/(exp(x) + 1))/100
 
+# Derivative of sigmoid
+sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
+
+# Simple parametric bootstrap confidence intervals (quantiles).
 boot_ci <- function(b, coverage){
   
   a <- (1 - coverage)/2

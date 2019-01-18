@@ -170,12 +170,7 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
       warning("Cannot switch off bootstrap with sigmoidal model - ignored.")
       bootci <- TRUE
     }
-    
-    if(model == "nls_sigmoidal" && x != 50){
-      warning("For nls_sigmoidal, can only set x = 50 (for now anyway).")
-      x <- 50
-    }
-  
+
     # Find out if called from fitcond.
     mc <- names(as.list(match.call()))
     condfit <- "calledfromfitcond" %in% mc
@@ -426,7 +421,7 @@ nls_sigmoidal_fixed <- function(Data, W, x, coverage, condfit, Kmax,
                                 bootci, nboot, quiet, 
                                 loess_span, msMaxIter){
   
-  # guess starting values from sigmoidal
+  # guess starting values from linearized sigmoidal
   f <- do_sigmoid_fit(Data, boot=FALSE, W=W)
   p <- coef(f$fit)
   
@@ -435,31 +430,18 @@ nls_sigmoidal_fixed <- function(Data, W, x, coverage, condfit, Kmax,
   b <- p[1]/p[2]
   
   # fit
-  Data$X <- x  # Necessary for bootstrap - I think.
-  if(!quiet)message("Fitting nls ...", appendLF=FALSE)
+  Data$X <- x  # Necessary for bootstrap (scoping issue).
   
-  # Weighted NLS
-  if(!is.null(W)){
-    
-    fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
-               data=Data, start=list(a=a, b=b),
-               weights=W)
-    
-  } else {
-    
-    # Ordinary NLS
-    fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
-               data=Data, start=list(a=a, b=b))
-  }
-  
+  fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
+             data=Data, start=list(a=a, b=b),
+             weights=W)
+
   nls_sig_convert_coef <- function(coefs, x){
     
     a <- coefs[1]
     b <- coefs[2]
-    Px <- ab_to_px(a, b, x)
+    Px <- ab_to_px(a, b, 100 - x)
     
-    # Derivative of sigmoid
-    sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
     Sx <- 100 * sig2d(Px,a,b)
     
     list(Px=Px, Sx=Sx)
@@ -571,10 +553,8 @@ sigfit_coefs <- function(c1,c2,x){
   Px <- ab_to_px(a, b, x)
   
   # Derivative of sigmoid
-  sig2d <- function(Px, a,b)-(exp(a * (Px - b)) * a/(1 + exp(a * (Px - b)))^2)
   Sx <- -100 * sig2d(Px,a,b)
-  #Sx <- 100 * c2/4  # slope at P50
-  
+
 list(Px=unname(Px), Sx=unname(Sx))
 }
 
