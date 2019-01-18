@@ -1,6 +1,5 @@
 
 #' @importFrom grDevices rgb
-#' (simplified to help code coverage)
 alpha <- function (colour, alpha = NA) {
   col <- col2rgb(colour, TRUE)/255
 
