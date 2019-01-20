@@ -12,9 +12,9 @@
   px_ci_type = c("vertical", "horizontal"), px_ci_label = TRUE,
   plotrandom = FALSE, pointcol = "black", linecol = "black",
   linetype = 1, linelwd = 1, linecol2 = "blue", pxlinecol = "red",
-  pxcex = 0.7, citype = c("polygon", "lines"),
-  cicol = alpha("lightgrey", 0.8), what = c("relk", "PLC", "embol"),
-  xaxis = c("positive", "negative"), ...)
+  pxcex = 0.7, citype = c("polygon", "lines"), cicol = "#D3D3D3CC",
+  what = c("relk", "PLC", "embol"), xaxis = c("positive", "negative"),
+  ...)
 
 \method{plot}{manyplcfit}(x, what = c("relk", "embol", "PLC"),
   onepanel = FALSE, linecol = NULL, pointcol = NULL, pch = 19,
