@@ -36,6 +36,19 @@ h3 <- fitconds(stemvul, group="Species",
 s1 <- fitplc(dpap, x=Xval, coverage=cover, nboot=n_boot, 
              model = "nls_sigmoidal")
 
+# More test data
+test_cav <- read.table(text="Species    WP       PLC
+      B3 -0.50  0.000000
+      B3 -0.80  1.019108
+      B3 -1.10  5.987261
+      B3 -1.50  6.242038
+      B3 -2.00  8.789809
+      B3 -2.30 60.636943
+      B3 -2.49 90.522293
+      B3 -2.79 98.598726", header=TRUE)
+s2 <- fitplc(test_cav, model= "nls_sigmoidal", varnames=c(WP="WP", PLC="PLC"), boot=FALSE)
+s3 <- fitplc(test_cav, model= "nls_sigmoidal", varnames=c(WP="WP", PLC="PLC"), boot=TRUE)
+
 
 dpap$Weights <- abs(50-dpap$PLC)^1.2
 w1 <- fitplc(dpap, model = "Weibull", weights=Weights, nboot=n_boot)
@@ -43,7 +56,7 @@ w2 <- fitplc(dpap, model = "sigmoidal", weights=Weights, nboot=n_boot)
 
 # getPx
 fun <- function(object)print(getPx(object, x=c(12,50,88)))
-gpx <- lapply(list(f,g,h,k,m),fun)
+gpx <- lapply(list(f,g,h,k,m,h1,h3),fun)
 
 
 test_that("Estimated coefficients", {
@@ -120,6 +133,7 @@ print(h2)
 print(h3)
 print(fc1)
 print(fc2)
+print(fc3)
 summary(f) # equals (print(f))
 print(k)
 
@@ -132,6 +146,7 @@ plot(f)
 plot(g, add=TRUE,px_ci_type="horizontal")
 
 plot(f, what = "embol")
+
 plot(w1, xaxis="negative")
 plot(f, citype = "lines")
 plot(g, px_ci = "bootstrap")
@@ -146,11 +161,13 @@ plot(f, xlab="Hello", ylab="Hey", ylim=c(0,2), pch=15, plotPx=FALSE,
 plot(f, px_ci="parametric")
 plot(h, px_ci="parametric")
 
+plot(fc1)
+
 plot(k, plotrandom=TRUE)
 plot(m, plotrandom=TRUE)
 
 # Jen bug, 2018-05-29
 plot(k, what="PLC", plotrandom=TRUE)
-plot(h1)
+plot(h1, what="embol")
 plot(h1, onepanel=TRUE)
 

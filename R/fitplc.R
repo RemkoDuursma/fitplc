@@ -179,7 +179,8 @@
 #' 
 #' # Visualize the random effects.
 #' plot(fitr, plotrandom=TRUE)
-fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
+fitplc <- function(dfr, 
+                   varnames = c(PLC="PLC", WP="MPa"),
                    weights=NULL,
                    random=NULL,
                    model=c("Weibull","sigmoidal","loess","nls_sigmoidal"), 
@@ -285,18 +286,18 @@ fitplc <- function(dfr, varnames = c(PLC="PLC", WP="MPa"),
                   nls_sigmoidal_fixed = nls_sigmoidal_fixed(Data, W, x, coverage,
                                                             bootci, nboot, quiet))
     
-    structure(c(out,
-                list(data = Data,
-                     x = x,
-                     condfit = condfit,
-                     Kmax = Kmax,
-                     fitran = fitran,
-                     bootci = bootci,
-                     nboot = nboot,
-                     model = model, 
-                     coverage = coverage,
-                     shiftval = shift_val)),
-              class = "plcfit")
+structure(c(out,
+            list(data = Data,
+                 x = x,
+                 condfit = condfit,
+                 Kmax = Kmax,
+                 fitran = fitran,
+                 bootci = bootci,
+                 nboot = nboot,
+                 model = model, 
+                 coverage = coverage,
+                 shiftval = shift_val)),
+          class = "plcfit")
     
 }    
 
@@ -456,7 +457,7 @@ nls_sigmoidal_fixed <- function(Data, W, x, coverage,
   # fit
   Data$X <- x  # Necessary for bootstrap (scoping issue).
   
-  fit <- nls(relK ~ 1 - 1/(1 + exp(a*(P - b))),
+  fit <- nls(relK ~ 1/(1 + exp(a*(P - b))),
              data=Data, start=list(a=a, b=b),
              weights=W)
 
@@ -474,17 +475,36 @@ nls_sigmoidal_fixed <- function(Data, W, x, coverage,
   fit_ab <- coef(fit)
   sp <- nls_sig_convert_coef(fit_ab, x=x)
   
+  
+  Px_ci <- car::deltaMethod(fit, sprintf("(log(1/(1 - %s/100) - 1)/a) + b",x), 
+              parameterNames=c("a","b"))
+  
+  # deltaMethod not needed here but convenient and equivalent
+  Sx_ci <- car::deltaMethod(fit, 
+                sprintf("-(exp(a * (%s - b)) * a/(1 + exp(a * (%s - b)))^2)", sp$Px,sp$Px), 
+                parameterNames=c("a","b"))
+  
+  cipars <- rbind(-100 * Sx_ci, Px_ci)
+  cipars[1,] <- cipars[1, c(1,2,4,3)]
+  
+  cipars$SE <- NULL
+  dimnames(cipars) <- list(c("SX","PX"),
+                           c("Estimate", ci_names("Norm",coverage)))
+  
+  inter_val <- ifelse(bootci, "confidence", "none")
+  pred <- predict_nls(fit, xvarname="P", interval=inter_val, data=Data, 
+                      startList=list(a=fit_ab[1], b=fit_ab[2]), weights=W, 
+                      level=coverage,
+                      nboot=nboot)
+  
   if(bootci){
-    pred <- predict_nls(fit, xvarname="P", interval="confidence", data=Data, 
-                        startList=list(a=fit_ab[1], b=fit_ab[2]), weights=W, 
-                        level=coverage,
-                        nboot=nboot)
-    
+
     z <- apply(pred$boot, 1, nls_sig_convert_coef, x=x)
     pred$boot <- as.data.frame(do.call(rbind, lapply(z, unlist)))
     names(pred$boot) <- c("Px","Sx")
     
     cisx <- quantile(pred$boot[,"Sx"], c((1-coverage)/2, 1 - (1-coverage)/2))
+    cisx <- -rev(cisx)
     cipx <- quantile(pred$boot[,"Px"], c((1-coverage)/2, 1 - (1-coverage)/2))
     
     bootpars <- matrix(c(cisx[1],cipx[1],cisx[2],cipx[2]), nrow=2,
@@ -492,8 +512,6 @@ nls_sigmoidal_fixed <- function(Data, W, x, coverage,
                                      c(sprintf("Boot - %s",label_lowci(coverage)),
                                        sprintf("Boot - %s",label_upci(coverage)))))
     
-    cipars <- matrix(c(sp$Sx, sp$Px), ncol=1, nrow=2)
-    dimnames(cipars) <- list(c("SX","PX"), "Estimate")
     cipars <- cbind(cipars, bootpars)
   }
   
@@ -505,11 +523,11 @@ sigmoidal_random <- function(Data, W, x, coverage, quiet){
   
   # With random effect
   fit <- do_sigmoid_lme_fit(Data)
-  
-  Px_ci <- deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
+
+  Px_ci <- car::deltaMethod(fit, "b0/b1", parameterNames=c("b0","b1"))
   
   # deltaMethod not needed here but convenient and equivalent
-  Sx_ci <- deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
+  Sx_ci <- car::deltaMethod(fit, "100*b1/4", parameterNames=c("b0","b1"))
   cipars <- rbind(Sx_ci, Px_ci)
   cipars$SE <- NULL
   dimnames(cipars) <- list(c("SX","PX"),

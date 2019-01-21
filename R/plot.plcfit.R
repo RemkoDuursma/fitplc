@@ -126,9 +126,6 @@ plot.plcfit <- function(x, xlab=NULL, ylab=NULL, ylim=NULL, pch=19,
                              f$fit <- relk_to_plc(f$fit)
                              return(f)
                            })
-      
-      if(!x$fitran)x$pred$fit <- relk_to_plc(x$pred$fit)
-      
     }
   }
 

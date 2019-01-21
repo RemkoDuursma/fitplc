@@ -17,11 +17,8 @@ bootfit <- function(fit, n=999, maxnbad=50, Data, startList, weights=NULL){
   while(ndone < n && nbad < maxnbad){
     bootsample <- sample(nrow, replace=TRUE)
     
-    if(is.null(weights)){
-      tryfit <- try(update(fit, subset=bootsample, data=Data, start=startList), silent=TRUE)
-    } else {
-      tryfit <- try(update(fit, subset=bootsample, data=Data, start=startList, weights=weights), silent=TRUE)
-    }
+    tryfit <- try(update(fit, subset=bootsample, data=Data, start=startList, weights=weights), silent=TRUE)
+
     if(!inherits(tryfit, "try-error")){
       ndone <- ndone + 1
       nbad <- 0
