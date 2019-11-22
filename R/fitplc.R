@@ -465,7 +465,7 @@ nls_sigmoidal_fixed <- function(Data, W, x, coverage,
     
     a <- coefs[1]
     b <- coefs[2]
-    Px <- ab_to_px(a, b, 100 - x)
+    Px <- ab_to_px(a, b, x)
     
     Sx <- 100 * sig2d(Px,a,b)
     
