@@ -49,3 +49,4 @@ loess          loess      boot        *always*
 nls_sigmoidal  nls        boot        `bootci = TRUE`
 
 
+
