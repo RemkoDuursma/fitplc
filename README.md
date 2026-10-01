@@ -1,6 +1,6 @@
 # Fit Hydraulic Vulnerability Curves in R
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fitplc)](https://cran.r-project.org/package=fitplc) [![](https://cranlogs.r-pkg.org/badges/grand-total/fitplc)](https://CRAN.R-project.org/package=fitplc) [![Travis-CI Build Status](https://travis-ci.org/RemkoDuursma/fitplc.svg?branch=master)](https://travis-ci.org/RemkoDuursma/fitplc) [![codecov](https://codecov.io/gh/RemkoDuursma/fitplc/branch/master/graph/badge.svg)](https://codecov.io/gh/RemkoDuursma/fitplc) 
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fitplc)](https://cran.r-project.org/package=fitplc) [![](https://cranlogs.r-pkg.org/badges/grand-total/fitplc)](https://CRAN.R-project.org/package=fitplc)
 
 This page describes the `fitplc` package, which can be used to fit curves to measurements of plant stem, leaf or root conductivity (or conductance) at varying water potentials (so called 'PLC curves'). 
 The package either fits the Weibull curve as reparameterized by Ogle et al. (2009), or a sigmoidal model proposed by Pammenter and van Willigen (1998). 
@@ -15,8 +15,6 @@ The package calculate confidence intervals for the parameters (e.g., P50, slope 
 
 Please read `?fitplc` for more instructions, and the examples on that page.
 
-To report bugs or suggest new features, please [open a new issue by following this link](https://bitbucket.org/remkoduursma/fitplc/issues/new).
-
 
 ## Installation instructions
 
@@ -29,8 +27,7 @@ library(fitplc)
 
 To install the development version, use this command:
 ```
-library(devtools)
-install_bitbucket("remkoduursma/fitplc")
+remotes::install_github("remkoduursma/fitplc")
 library(fitplc)
 ```
 
@@ -39,10 +36,9 @@ Windows users must have [Rtools](http://cran.r-project.org/bin/windows/Rtools/) 
 
 ## Model overview
 
-*Work in progress* : options and implementation for the various models.
-'when': is the confidence interval (via method 'ci') always calculated?
+Overview of model settings:
 
-Model          fitter     ci          when
+Model          fitter     ci          ci calculated?
 -------        -------    -------     -------
 Weibull        nls        confint     *always*
                           boot        `bootci = TRUE`
